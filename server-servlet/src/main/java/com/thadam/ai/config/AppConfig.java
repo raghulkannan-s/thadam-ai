@@ -36,6 +36,14 @@ public final class AppConfig {
         return getEnv("GEMINI_API_KEY", "");
     }
 
+    public static String geminiModel() {
+        return getEnv("GEMINI_MODEL", "gemini-1.5-flash-latest");
+    }
+
+    public static String geminiApiVersion() {
+        return getEnv("GEMINI_API_VERSION", "v1");
+    }
+
     public static String allowedOrigin() {
         return getEnv("APP_ALLOWED_ORIGIN", "http://localhost:3000");
     }

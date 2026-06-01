@@ -10,10 +10,11 @@ public class Roadmap {
     private int durationWeeks;
     private String difficulty;
     private String status;
+    private String detailJson;
     private Instant createdAt;
     private Instant updatedAt;
 
-    public Roadmap(long id, long userId, String title, String goal, int durationWeeks, String difficulty, String status, Instant createdAt, Instant updatedAt) {
+    public Roadmap(long id, long userId, String title, String goal, int durationWeeks, String difficulty, String status, String detailJson, Instant createdAt, Instant updatedAt) {
         this.id = id;
         this.userId = userId;
         this.title = title;
@@ -21,6 +22,7 @@ public class Roadmap {
         this.durationWeeks = durationWeeks;
         this.difficulty = difficulty;
         this.status = status;
+        this.detailJson = detailJson;
         this.createdAt = createdAt;
         this.updatedAt = updatedAt;
     }
@@ -51,6 +53,10 @@ public class Roadmap {
 
     public String getStatus() {
         return status;
+    }
+
+    public String getDetailJson() {
+        return detailJson;
     }
 
     public Instant getCreatedAt() {

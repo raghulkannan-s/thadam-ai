@@ -1,10 +1,10 @@
 package com.thadam.ai.utils;
 
-import io.github.cdimascio.dotenv.Dotenv;
-
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+
+import io.github.cdimascio.dotenv.Dotenv;
 
 public final class EnvLoader {
     private static boolean loaded = false;
@@ -15,11 +15,19 @@ public final class EnvLoader {
         if (loaded) {
             return;
         }
-        Path repoDir = Paths.get(System.getProperty("user.dir"));
-        Path servletEnv = repoDir.resolve("server-servlet").resolve(".env");
-        if (Files.exists(servletEnv)) {
+        Path workingDir = Paths.get(System.getProperty("user.dir"));
+        Path localEnv = workingDir.resolve(".env");
+        Path repoEnv = workingDir.resolve("server-servlet").resolve(".env");
+
+        if (Files.exists(localEnv)) {
             Dotenv.configure()
-                .directory(servletEnv.getParent().toString())
+                .directory(localEnv.getParent().toString())
+                .ignoreIfMissing()
+                .systemProperties()
+                .load();
+        } else if (Files.exists(repoEnv)) {
+            Dotenv.configure()
+                .directory(repoEnv.getParent().toString())
                 .ignoreIfMissing()
                 .systemProperties()
                 .load();
