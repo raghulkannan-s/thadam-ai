@@ -9,16 +9,18 @@ public class RoadmapDto {
     private int durationWeeks;
     private String difficulty;
     private String status;
-    private List<RoadmapTaskDto> tasks;
+    private String detailJson;
+    private List<ChecklistItemDto> checklist;
 
-    public RoadmapDto(long id, String title, String goal, int durationWeeks, String difficulty, String status, List<RoadmapTaskDto> tasks) {
+    public RoadmapDto(long id, String title, String goal, int durationWeeks, String difficulty, String status, String detailJson, List<ChecklistItemDto> checklist) {
         this.id = id;
         this.title = title;
         this.goal = goal;
         this.durationWeeks = durationWeeks;
         this.difficulty = difficulty;
         this.status = status;
-        this.tasks = tasks;
+        this.detailJson = detailJson;
+        this.checklist = checklist;
     }
 
     public long getId() {
@@ -45,7 +47,11 @@ public class RoadmapDto {
         return status;
     }
 
-    public List<RoadmapTaskDto> getTasks() {
-        return tasks;
+    public String getDetailJson() {
+        return detailJson;
+    }
+
+    public List<ChecklistItemDto> getChecklist() {
+        return checklist;
     }
 }

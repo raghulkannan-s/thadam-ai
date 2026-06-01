@@ -55,12 +55,20 @@ public class AuthController extends HttpServlet {
             switch (path) {
                 case "/register":
                     RegisterRequest register = JsonUtils.readJson(req, RegisterRequest.class);
+                    if (register == null) {
+                        JsonUtils.writeJson(resp, HttpServletResponse.SC_BAD_REQUEST, new ApiResponse<>(false, "Invalid request body", null));
+                        break;
+                    }
                     UserDto registered = authService.register(register.email, register.password, register.displayName);
                     setSession(req, registered.getId());
                     JsonUtils.writeJson(resp, HttpServletResponse.SC_CREATED, new ApiResponse<>(true, "Registration successful", new AuthResponseDto(registered)));
                     break;
                 case "/login":
                     LoginRequest login = JsonUtils.readJson(req, LoginRequest.class);
+                    if (login == null) {
+                        JsonUtils.writeJson(resp, HttpServletResponse.SC_BAD_REQUEST, new ApiResponse<>(false, "Invalid request body", null));
+                        break;
+                    }
                     UserDto user = authService.login(login.email, login.password);
                     setSession(req, user.getId());
                     JsonUtils.writeJson(resp, HttpServletResponse.SC_OK, new ApiResponse<>(true, "Login successful", new AuthResponseDto(user)));
@@ -79,7 +87,8 @@ public class AuthController extends HttpServlet {
         } catch (IllegalArgumentException ex) {
             JsonUtils.writeJson(resp, HttpServletResponse.SC_BAD_REQUEST, new ApiResponse<>(false, ex.getMessage(), null));
         } catch (Exception ex) {
-            JsonUtils.writeJson(resp, HttpServletResponse.SC_INTERNAL_SERVER_ERROR, new ApiResponse<>(false, "Server error", null));
+            ex.printStackTrace();
+            JsonUtils.writeJson(resp, HttpServletResponse.SC_INTERNAL_SERVER_ERROR, new ApiResponse<>(false, "Server error: " + ex.getMessage(), null));
         }
     }
 

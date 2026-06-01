@@ -29,6 +29,7 @@ CREATE TABLE IF NOT EXISTS roadmaps (
   duration_weeks INT NOT NULL,
   difficulty VARCHAR(40) NOT NULL,
   status VARCHAR(30) NOT NULL DEFAULT 'DRAFT',
+  detail_json TEXT DEFAULT NULL,
   verified_at TIMESTAMP NULL DEFAULT NULL,
   created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
   updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
@@ -37,34 +38,22 @@ CREATE TABLE IF NOT EXISTS roadmaps (
   INDEX idx_roadmaps_status (status)
 ) ENGINE=InnoDB;
 
-CREATE TABLE IF NOT EXISTS roadmap_tasks (
+CREATE TABLE IF NOT EXISTS checklist_items (
   id BIGINT UNSIGNED PRIMARY KEY AUTO_INCREMENT,
   roadmap_id BIGINT UNSIGNED NOT NULL,
   title VARCHAR(200) NOT NULL,
   description VARCHAR(1000) DEFAULT NULL,
+  status VARCHAR(30) NOT NULL DEFAULT 'PENDING',
+  due_date DATE DEFAULT NULL,
+  priority VARCHAR(20) NOT NULL DEFAULT 'MEDIUM',
   order_index INT NOT NULL,
-  expected_days INT DEFAULT NULL,
+  completed_at TIMESTAMP NULL DEFAULT NULL,
   created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
   updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-  CONSTRAINT fk_tasks_roadmap FOREIGN KEY (roadmap_id) REFERENCES roadmaps(id) ON DELETE CASCADE,
-  INDEX idx_tasks_roadmap (roadmap_id),
-  INDEX idx_tasks_order (roadmap_id, order_index)
-) ENGINE=InnoDB;
-
-CREATE TABLE IF NOT EXISTS task_submissions (
-  id BIGINT UNSIGNED PRIMARY KEY AUTO_INCREMENT,
-  task_id BIGINT UNSIGNED NOT NULL,
-  user_id BIGINT UNSIGNED NOT NULL,
-  proof_url VARCHAR(600) DEFAULT NULL,
-  status VARCHAR(30) NOT NULL DEFAULT 'PENDING',
-  submitted_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  reviewed_at TIMESTAMP NULL DEFAULT NULL,
-  reviewer_id BIGINT UNSIGNED DEFAULT NULL,
-  CONSTRAINT fk_submissions_task FOREIGN KEY (task_id) REFERENCES roadmap_tasks(id) ON DELETE CASCADE,
-  CONSTRAINT fk_submissions_user FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
-  CONSTRAINT fk_submissions_reviewer FOREIGN KEY (reviewer_id) REFERENCES users(id) ON DELETE SET NULL,
-  INDEX idx_submissions_task (task_id),
-  INDEX idx_submissions_user (user_id)
+  CONSTRAINT fk_checklist_roadmap FOREIGN KEY (roadmap_id) REFERENCES roadmaps(id) ON DELETE CASCADE,
+  INDEX idx_checklist_roadmap (roadmap_id),
+  INDEX idx_checklist_status (roadmap_id, status),
+  INDEX idx_checklist_order (roadmap_id, order_index)
 ) ENGINE=InnoDB;
 
 CREATE TABLE IF NOT EXISTS accountability_groups (
