@@ -92,20 +92,20 @@ MODERATOR
 
 ## Password Security
 
-* [ ] BCryptPasswordEncoder
-* [ ] Hash Password
-* [ ] Verify Password
-* [ ] Never Store Plain Text Password
+* [x] BCryptPasswordEncoder
+* [x] Hash Password
+* [x] Verify Password
+* [x] Never Store Plain Text Password
 
 ---
 
 ## Register
 
-* [ ] RegisterRequest
-* [ ] RegisterResponse
-* [ ] Register Service
-* [ ] Register API
-* [ ] Duplicate Email Validation
+* [x] RegisterRequest
+* [x] RegisterResponse
+* [x] Register Service
+* [x] Register API
+* [x] Duplicate Email Validation
 
 Endpoint:
 
@@ -117,10 +117,10 @@ POST /api/auth/register
 
 ## Login
 
-* [ ] LoginRequest
-* [ ] LoginResponse
-* [ ] Login Service
-* [ ] Login API
+* [x] LoginRequest
+* [x] LoginResponse
+* [x] Login Service
+* [x] Login API
 
 Endpoint:
 
@@ -146,20 +146,20 @@ GET /api/auth/me
 
 ### JWT Utility
 
-* [ ] Generate Access Token
-* [ ] Validate Token
-* [ ] Extract Claims
-* [ ] Extract Email
-* [ ] Token Expiration
+* [x] Generate Access Token
+* [x] Validate Token
+* [x] Extract Claims
+* [x] Extract Email
+* [x] Token Expiration
 
 ### Security
 
-* [ ] SecurityFilterChain
-* [ ] JwtAuthenticationFilter
-* [ ] AuthenticationEntryPoint
-* [ ] UserDetails
-* [ ] UserDetailsService
-* [ ] PasswordEncoder Bean
+* [x] SecurityFilterChain
+* [x] JwtAuthenticationFilter
+* [x] AuthenticationEntryPoint
+* [x] UserDetails
+* [x] UserDetailsService
+* [x] PasswordEncoder Bean
 
 ---
 

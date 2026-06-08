@@ -2,6 +2,7 @@ package com.thadam.ai.service;
 
 import java.util.List;
 
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import com.thadam.ai.dto.CreateUserRequest;
@@ -20,6 +21,7 @@ import lombok.RequiredArgsConstructor;
 public class UserService {
     
     private final UserRepository userRepository;
+    private final PasswordEncoder passwordEncoder;
 
     public CreateUserResponse createUser(CreateUserRequest request){
         User user = User.builder()
@@ -27,10 +29,10 @@ public class UserService {
                 .email(request.email())
                 .build();
         
-        if( userRepository.existsByEmail(email) ){
+        if( userRepository.existsByEmail(request.email()) ){
             throw new ConflictException(
                 "Email already exists"
-            )
+            );
         }
 
         User savedUser = userRepository.save(user); 

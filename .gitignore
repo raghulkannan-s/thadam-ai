@@ -8,3 +8,5 @@ client/.env
 /server-servlet/target
 /server-springboot/target
 client/node_modules
+
+/server-springboot/prompt.md
