@@ -199,7 +199,7 @@ export function Navbar() {
               >
                 <UserIcon />
                 <span style={{ fontWeight: 500 }}>
-                  {user.displayName || user.email}
+{user.name || user.email}
                 </span>
               </div>
               <button
@@ -297,7 +297,7 @@ export function Navbar() {
                 }}
               >
                 <LogOutIcon />
-                Sign out ({user.displayName || user.email})
+                Sign out ({user.name || user.email})
               </button>
             ) : (
               <div style={{ display: "flex", gap: "8px" }}>

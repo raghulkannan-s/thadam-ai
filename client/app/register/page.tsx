@@ -7,8 +7,6 @@ import { Spinner } from "@/app/components/LoadingSpinner";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 
-/* ── Icons ── */
-
 function UserIcon() {
   return (
     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--text-tertiary)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -55,8 +53,6 @@ function EyeOffIcon() {
   );
 }
 
-/* ── Password strength ── */
-
 function getPasswordStrength(pw: string): { score: number; label: string; color: string } {
   let score = 0;
   if (pw.length >= 8) score++;
@@ -90,16 +86,16 @@ export default function RegisterPage() {
     event.preventDefault();
     setError(null);
 
-    if (password.length < 8) {
-      setError("Password must be at least 8 characters");
+    if (password.length < 6) {
+      setError("Password must be at least 6 characters");
       return;
     }
 
     setLoading(true);
     try {
-      await register(email, password, displayName);
-      addToast("Account created! Welcome aboard 🎉", "success");
-      router.push("/dashboard");
+      await register(displayName, email, password);
+      addToast("Account created! Welcome aboard", "success");
+      router.push("/community");
     } catch (err) {
       const message = err instanceof Error ? err.message : "Registration failed";
       setError(message);
@@ -128,7 +124,6 @@ export default function RegisterPage() {
           padding: "40px 32px",
         }}
       >
-        {/* Header */}
         <div className="badge badge-accent" style={{ marginBottom: "20px" }}>
           Get started
         </div>
@@ -153,7 +148,6 @@ export default function RegisterPage() {
           Generate AI roadmaps, build checklists, and track your learning.
         </p>
 
-        {/* Error */}
         {error && (
           <div
             className="animate-shake"
@@ -161,7 +155,7 @@ export default function RegisterPage() {
               marginTop: "20px",
               padding: "12px 16px",
               borderRadius: "var(--radius-md)",
-              background: "var(--error-glow)",
+              background: "var(--error-bg)",
               border: "1px solid rgba(248, 113, 113, 0.25)",
               color: "var(--error)",
               fontSize: "0.82rem",
@@ -171,9 +165,7 @@ export default function RegisterPage() {
           </div>
         )}
 
-        {/* Form */}
         <form onSubmit={onSubmit} style={{ marginTop: "28px" }}>
-          {/* Display name */}
           <div style={{ marginBottom: "20px" }}>
             <label className="label" htmlFor="register-name">Display name</label>
             <div style={{ position: "relative" }}>
@@ -197,7 +189,6 @@ export default function RegisterPage() {
             </div>
           </div>
 
-          {/* Email */}
           <div style={{ marginBottom: "20px" }}>
             <label className="label" htmlFor="register-email">Email</label>
             <div style={{ position: "relative" }}>
@@ -221,7 +212,6 @@ export default function RegisterPage() {
             </div>
           </div>
 
-          {/* Password */}
           <div style={{ marginBottom: "8px" }}>
             <label className="label" htmlFor="register-password">Password</label>
             <div style={{ position: "relative" }}>
@@ -236,11 +226,11 @@ export default function RegisterPage() {
                 type={showPassword ? "text" : "password"}
                 className="input"
                 style={{ paddingLeft: "40px", paddingRight: "44px" }}
-                placeholder="At least 8 characters"
+                placeholder="At least 6 characters"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required
-                minLength={8}
+                minLength={6}
                 autoComplete="new-password"
               />
               <button
@@ -260,7 +250,6 @@ export default function RegisterPage() {
             </div>
           </div>
 
-          {/* Password strength meter */}
           {password.length > 0 && (
             <div className="animate-fade-in" style={{ marginBottom: "24px" }}>
               <div
@@ -290,23 +279,19 @@ export default function RegisterPage() {
 
           <button
             type="submit"
-            className="btn-primary"
+            className="btn btn-primary"
             disabled={loading}
             style={{
               width: "100%",
               padding: "12px",
               fontSize: "0.9rem",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              gap: "8px",
               marginTop: password.length === 0 ? "20px" : "0",
             }}
           >
             {loading ? (
               <>
                 <Spinner size={16} />
-                Creating account…
+                Creating account\u2026
               </>
             ) : (
               "Create account"
@@ -314,7 +299,6 @@ export default function RegisterPage() {
           </button>
         </form>
 
-        {/* Footer */}
         <p
           style={{
             marginTop: "28px",
@@ -327,7 +311,7 @@ export default function RegisterPage() {
           <Link
             href="/login"
             style={{
-              color: "var(--accent-tertiary)",
+              color: "var(--accent-secondary)",
               fontWeight: 600,
               textDecoration: "none",
             }}

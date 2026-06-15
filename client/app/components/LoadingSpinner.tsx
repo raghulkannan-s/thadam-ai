@@ -68,19 +68,21 @@ export function AiLoader() {
         padding: "40px 20px",
       }}
     >
-      <div className="animate-pulse-glow" style={{
-        width: "56px",
-        height: "56px",
-        borderRadius: "var(--radius-xl)",
-        background: "var(--accent-gradient)",
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-      }}>
-        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <div
+        style={{
+          width: "56px",
+          height: "56px",
+          borderRadius: "var(--radius-xl)",
+          background: "var(--accent-primary)",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+        }}
+      >
+        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="var(--text-inverse)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
           <path d="M12 2a4 4 0 0 0-4 4c0 4 4 6 4 10" />
           <path d="M12 2a4 4 0 0 1 4 4c0 4-4 6-4 10" />
-          <circle cx="12" cy="20" r="2" fill="white" />
+          <circle cx="12" cy="20" r="2" fill="var(--text-inverse)" />
         </svg>
       </div>
       <div style={{ textAlign: "center" }}>
@@ -94,7 +96,7 @@ export function AiLoader() {
       <div className="progress-bar" style={{ width: "200px" }}>
         <div
           className="progress-bar-fill"
-          style={{ width: "60%", animation: "shimmer 1.5s ease-in-out infinite, gradientShift 3s ease infinite" }}
+          style={{ width: "60%" }}
         />
       </div>
     </div>
