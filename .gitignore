@@ -1,12 +1,10 @@
-/server.servlet/.env
-/server.springboot/.env
+/server/.env
 client/.env
 
 .github
 .vscode
 
-/server.servlet/target
-/server.springboot/target
+/server/target
 client/node_modules
 
-/server.springboot/prompt.md
+/server/prompt.md

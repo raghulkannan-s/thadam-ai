@@ -1,105 +1,120 @@
 "use client";
 
 import { useAuth } from "@/lib/auth-context";
-import { PageLoader } from "@/app/components/LoadingSpinner";
+import { PageLoader, Spinner } from "@/app/components/LoadingSpinner";
 import { useRouter } from "next/navigation";
-import { useEffect } from "react";
-
-/* ── Icons ── */
-
-function ShieldIcon() {
-  return (
-    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
-    </svg>
-  );
-}
-
-function UsersIcon() {
-  return (
-    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
-      <circle cx="9" cy="7" r="4" />
-      <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
-      <path d="M16 3.13a4 4 0 0 1 0 7.75" />
-    </svg>
-  );
-}
-
-function FlagIcon() {
-  return (
-    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z" />
-      <line x1="4" y1="22" x2="4" y2="15" />
-    </svg>
-  );
-}
-
-function BarChartIcon() {
-  return (
-    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-      <line x1="18" y1="20" x2="18" y2="10" />
-      <line x1="12" y1="20" x2="12" y2="4" />
-      <line x1="6" y1="20" x2="6" y2="14" />
-    </svg>
-  );
-}
-
-const adminCards = [
-  {
-    icon: <UsersIcon />,
-    title: "User Management",
-    description: "View, search, and moderate user accounts. Ban or suspend violating users.",
-    badge: "Coming soon",
-    color: "var(--accent-primary)",
-  },
-  {
-    icon: <FlagIcon />,
-    title: "Report Review",
-    description: "Review flagged content, spam roadmaps, and inappropriate submissions.",
-    badge: "Coming soon",
-    color: "var(--warning)",
-  },
-  {
-    icon: <BarChartIcon />,
-    title: "Platform Analytics",
-    description: "Track signups, roadmap generation rate, completion metrics, and engagement.",
-    badge: "Coming soon",
-    color: "var(--success)",
-  },
-];
+import { useEffect, useState, useCallback } from "react";
+import { apiFetch } from "@/lib/api";
+import { useToast } from "@/app/components/Toast";
+import type { AdminUserResponse } from "@/lib/types";
 
 export default function AdminPage() {
   const { user, isLoading } = useAuth();
+  const { addToast } = useToast();
   const router = useRouter();
+  const [users, setUsers] = useState<AdminUserResponse[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [updatingId, setUpdatingId] = useState<number | null>(null);
+
+  const loadUsers = useCallback(async () => {
+    try {
+      const res = await apiFetch<AdminUserResponse[]>("/api/admin/users");
+      setUsers(res.data);
+    } catch (err) {
+      addToast(
+        err instanceof Error ? err.message : "Failed to load users",
+        "error",
+      );
+    } finally {
+      setLoading(false);
+    }
+  }, [addToast]);
 
   useEffect(() => {
     if (!isLoading && !user) {
       router.push("/login");
+      return;
     }
-  }, [user, isLoading, router]);
+    if (user && user.role === "ADMIN") {
+      loadUsers();
+    } else if (user && user.role !== "ADMIN") {
+      setLoading(false);
+    }
+  }, [user, isLoading, router, loadUsers]);
+
+  const handleRoleChange = async (userId: number, newRole: string) => {
+    setUpdatingId(userId);
+    try {
+      const res = await apiFetch<AdminUserResponse>(
+        `/api/admin/users/${userId}/role`,
+        {
+          method: "PATCH",
+          body: JSON.stringify({ role: newRole }),
+        },
+      );
+      setUsers((prev) =>
+        prev.map((u) => (u.id === userId ? res.data : u)),
+      );
+      addToast("Role updated successfully", "success");
+    } catch (err) {
+      addToast(
+        err instanceof Error ? err.message : "Failed to update role",
+        "error",
+      );
+    } finally {
+      setUpdatingId(null);
+    }
+  };
+
+  const handleDelete = async (userId: number) => {
+    if (!confirm("Are you sure you want to delete this user?")) return;
+    try {
+      await apiFetch(`/api/admin/users/${userId}`, {
+        method: "DELETE",
+      });
+      setUsers((prev) => prev.filter((u) => u.id !== userId));
+      addToast("User deleted", "success");
+    } catch (err) {
+      addToast(
+        err instanceof Error ? err.message : "Failed to delete user",
+        "error",
+      );
+    }
+  };
 
   if (isLoading) return <PageLoader />;
 
-  return (
-    <div style={{ padding: "32px 24px 80px", maxWidth: "900px", margin: "0 auto" }}>
-      {/* Header */}
-      <div className="animate-fade-in-up" style={{ textAlign: "center", marginBottom: "48px" }}>
-        <div
-          style={{
-            width: 56,
-            height: 56,
-            borderRadius: "var(--radius-xl)",
-            background: "var(--surface-2)",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            margin: "0 auto 20px",
-            color: "var(--accent-tertiary)",
-          }}
-        >
-          <ShieldIcon />
+  if (user && user.role !== "ADMIN") {
+    return (
+      <div
+        style={{
+          display: "flex",
+          flex: 1,
+          alignItems: "center",
+          justifyContent: "center",
+          padding: "40px 24px",
+        }}
+      >
+        <div className="panel animate-scale-in" style={{
+          maxWidth: "420px",
+          borderRadius: "var(--radius-2xl)",
+          padding: "40px 32px",
+          textAlign: "center",
+        }}>
+          <h2 style={{ fontSize: "1.2rem", fontWeight: 700, color: "var(--text-primary)", marginBottom: "12px" }}>
+            Access Denied
+          </h2>
+          <p style={{ fontSize: "0.85rem", color: "var(--text-secondary)", lineHeight: 1.6 }}>
+            You need admin privileges to access this page.
+          </p>
         </div>
+      </div>
+    );
+  }
+
+  return (
+    <div style={{ padding: "32px 24px 80px", maxWidth: "1000px", margin: "0 auto" }}>
+      <div className="animate-fade-in-up" style={{ marginBottom: "32px" }}>
         <div className="badge badge-accent" style={{ marginBottom: "16px" }}>
           Admin workspace
         </div>
@@ -111,112 +126,78 @@ export default function AdminPage() {
             letterSpacing: "-0.02em",
           }}
         >
-          Moderation Suite
+          User Management
         </h1>
         <p
           style={{
             marginTop: "8px",
             fontSize: "0.9rem",
             color: "var(--text-secondary)",
-            maxWidth: "500px",
-            margin: "8px auto 0",
           }}
         >
-          Admin tools for managing users, reviewing reports, and monitoring platform health.
+          View, manage roles, and remove users.
         </p>
       </div>
 
-      {/* Cards */}
-      <div
-        style={{
-          display: "grid",
-          gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))",
-          gap: "16px",
-        }}
-      >
-        {adminCards.map((card, i) => (
-          <div
-            key={card.title}
-            className={`panel animate-fade-in-up delay-${(i + 1) * 100}`}
-            style={{
-              borderRadius: "var(--radius-xl)",
-              padding: "28px",
-              position: "relative",
-              overflow: "hidden",
-            }}
-          >
-            <div
-              style={{
-                position: "absolute",
-                top: 0,
-                left: 0,
-                right: 0,
-                height: "3px",
-                background: card.color,
-                opacity: 0.6,
-              }}
-            />
-            <div
-              style={{
-                width: 44,
-                height: 44,
-                borderRadius: "var(--radius-md)",
-                background: "var(--surface-3)",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                color: card.color,
-                marginBottom: "16px",
-              }}
-            >
-              {card.icon}
-            </div>
-            <h3
-              style={{
-                fontSize: "1rem",
-                fontWeight: 700,
-                color: "var(--text-primary)",
-                marginBottom: "8px",
-              }}
-            >
-              {card.title}
-            </h3>
-            <p
-              style={{
-                fontSize: "0.82rem",
-                color: "var(--text-secondary)",
-                lineHeight: 1.6,
-                marginBottom: "16px",
-              }}
-            >
-              {card.description}
-            </p>
-            <span className="badge badge-neutral">{card.badge}</span>
-          </div>
-        ))}
-      </div>
-
-      {/* Platform status */}
-      <div
-        className="panel animate-fade-in-up delay-500"
-        style={{
-          borderRadius: "var(--radius-xl)",
-          padding: "32px",
-          marginTop: "24px",
-          textAlign: "center",
-        }}
-      >
-        <p
-          style={{
-            fontSize: "0.82rem",
-            color: "var(--text-tertiary)",
-            lineHeight: 1.7,
-          }}
-        >
-          Admin workflows are under development. Spam removal, report review, and user moderation
-          endpoints will be connected here once the backend APIs are deployed.
-        </p>
-      </div>
+      {loading ? (
+        <div style={{ display: "flex", justifyContent: "center", padding: "60px" }}>
+          <Spinner size={32} />
+        </div>
+      ) : (
+        <div className="table-container animate-fade-in-up delay-200">
+          <table className="table">
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>Name</th>
+                <th>Email</th>
+                <th>Role</th>
+                <th>Status</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {users.map((u) => (
+                <tr key={u.id}>
+                  <td style={{ fontWeight: 600, color: "var(--text-primary)" }}>{u.id}</td>
+                  <td><span style={{ fontWeight: 600 }}>{u.name}</span></td>
+                  <td style={{ color: "var(--text-secondary)" }}>{u.email}</td>
+                  <td>
+                    <select
+                      value={u.role}
+                      onChange={(e) => handleRoleChange(u.id, e.target.value)}
+                      disabled={updatingId === u.id}
+                      className="input"
+                      style={{ padding: "4px 8px", fontSize: "0.78rem", width: "auto", minWidth: "100px" }}
+                    >
+                      <option value="USER">USER</option>
+                      <option value="MODERATOR">MODERATOR</option>
+                      <option value="ADMIN">ADMIN</option>
+                    </select>
+                  </td>
+                  <td><span className={`badge ${u.active ? "badge-success" : "badge-error"}`}>{u.active ? "Active" : "Inactive"}</span></td>
+                  <td>
+                    <button
+                      onClick={() => handleDelete(u.id)}
+                      disabled={updatingId === u.id || u.id === user?.id}
+                      className="btn btn-ghost"
+                      style={{ color: "var(--error)", fontSize: "0.78rem", padding: "4px 12px", opacity: u.id === user?.id ? 0.4 : 1 }}
+                      title={u.id === user?.id ? "Cannot delete yourself" : "Delete user"}
+                    >
+                      {updatingId === u.id ? "\u2026" : "Delete"}
+                    </button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+          {users.length === 0 && !loading && (
+            <div style={{ padding: "40px", textAlign: "center", color: "var(--text-tertiary)", fontSize: "0.85rem" }}>No users found.</div>
+          )}
+        </div>
+      )}
     </div>
   );
 }
+
+

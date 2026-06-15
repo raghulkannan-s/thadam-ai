@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 
 type ProgressRingProps = {
-  value: number; // 0–100
+  value: number;
   size?: number;
   strokeWidth?: number;
   label?: string;
@@ -34,7 +34,6 @@ export function ProgressRing({
         height={size}
         style={{ transform: "rotate(-90deg)" }}
       >
-        {/* Background circle */}
         <circle
           cx={center}
           cy={center}
@@ -43,39 +42,21 @@ export function ProgressRing({
           stroke="var(--surface-3)"
           strokeWidth={strokeWidth}
         />
-        {/* Gradient definition */}
-        <defs>
-          <linearGradient id="progressGradient" x1="0%" y1="0%" x2="100%" y2="0%">
-            <stop offset="0%" stopColor="#6366f1" />
-            <stop offset="50%" stopColor="#8b5cf6" />
-            <stop offset="100%" stopColor="#a78bfa" />
-          </linearGradient>
-          <filter id="progressGlow">
-            <feGaussianBlur stdDeviation="3" result="blur" />
-            <feMerge>
-              <feMergeNode in="blur" />
-              <feMergeNode in="SourceGraphic" />
-            </feMerge>
-          </filter>
-        </defs>
-        {/* Progress circle */}
         <circle
           cx={center}
           cy={center}
           r={radius}
           fill="none"
-          stroke="url(#progressGradient)"
+          stroke="var(--accent-primary)"
           strokeWidth={strokeWidth}
           strokeLinecap="round"
           strokeDasharray={circumference}
           strokeDashoffset={offset}
-          filter="url(#progressGlow)"
           style={{
             transition: "stroke-dashoffset 1s cubic-bezier(0.16, 1, 0.3, 1)",
           }}
         />
       </svg>
-      {/* Center text */}
       <div
         style={{
           position: "absolute",
