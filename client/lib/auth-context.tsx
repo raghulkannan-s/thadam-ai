@@ -9,18 +9,14 @@ import {
   useState,
 } from "react";
 import type { ReactNode } from "react";
-import { apiFetch } from "@/lib/api";
-import type { User } from "@/lib/types";
+import { apiFetch, setTokens, clearTokens, loadStoredTokens } from "@/lib/api";
+import type { User, LoginResponse } from "@/lib/types";
 
 type AuthState = {
   user: User | null;
   isLoading: boolean;
   login: (email: string, password: string) => Promise<void>;
-  register: (
-    email: string,
-    password: string,
-    displayName: string,
-  ) => Promise<void>;
+  register: (name: string, email: string, password: string) => Promise<void>;
   logout: () => Promise<void>;
   refresh: () => Promise<void>;
 };
@@ -31,16 +27,27 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
-  const refresh = useCallback(async () => {
+  const fetchUser = useCallback(async (): Promise<User | null> => {
     try {
-      const res = await apiFetch<{ user: User }>("/api/auth/me");
-      setUser(res.data.user);
+      const res = await apiFetch<User>("/api/auth/me");
+      return res.data;
+    } catch {
+      return null;
+    }
+  }, []);
+
+  const refresh = useCallback(async () => {
+    setIsLoading(true);
+    loadStoredTokens();
+    try {
+      const fetched = await fetchUser();
+      setUser(fetched);
     } catch {
       setUser(null);
     } finally {
       setIsLoading(false);
     }
-  }, []);
+  }, [fetchUser]);
 
   useEffect(() => {
     refresh();
@@ -48,28 +55,41 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const login = useCallback(
     async (email: string, password: string) => {
-      const res = await apiFetch<{ user: User }>("/api/auth/login", {
+      const res = await apiFetch<LoginResponse>("/api/auth/login", {
         method: "POST",
         body: JSON.stringify({ email, password }),
       });
-      setUser(res.data.user);
+      setTokens(res.data.accessToken, res.data.refreshToken);
+      const fetched = await fetchUser();
+      setUser(fetched);
     },
-    [],
+    [fetchUser],
   );
 
   const register = useCallback(
-    async (email: string, password: string, displayName: string) => {
-      const res = await apiFetch<{ user: User }>("/api/auth/register", {
+    async (name: string, email: string, password: string) => {
+      await apiFetch("/api/auth/register", {
         method: "POST",
-        body: JSON.stringify({ email, password, displayName }),
+        body: JSON.stringify({ name, email, password }),
       });
-      setUser(res.data.user);
+      const res = await apiFetch<LoginResponse>("/api/auth/login", {
+        method: "POST",
+        body: JSON.stringify({ email, password }),
+      });
+      setTokens(res.data.accessToken, res.data.refreshToken);
+      const fetched = await fetchUser();
+      setUser(fetched);
     },
-    [],
+    [fetchUser],
   );
 
   const logout = useCallback(async () => {
-    await apiFetch("/api/auth/logout", { method: "POST" });
+    try {
+      await apiFetch("/api/auth/logout", { method: "POST" });
+    } catch {
+      /* ignore */
+    }
+    clearTokens();
     setUser(null);
   }, []);
 
