@@ -5,7 +5,7 @@ CREATE TABLE IF NOT EXISTS roadmaps (
     user_id BIGINT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
     status VARCHAR(50) NOT NULL DEFAULT 'ACTIVE',
     created_at TIMESTAMP,
-    update_at TIMESTAMP
+    updated_at TIMESTAMP
 );
 
 CREATE INDEX IF NOT EXISTS idx_roadmaps_user_id ON roadmaps(user_id);
@@ -20,7 +20,7 @@ CREATE TABLE IF NOT EXISTS milestones (
     due_date DATE,
     status VARCHAR(50) NOT NULL DEFAULT 'PENDING',
     created_at TIMESTAMP,
-    update_at TIMESTAMP
+    updated_at TIMESTAMP
 );
 
 CREATE INDEX IF NOT EXISTS idx_milestones_roadmap_id ON milestones(roadmap_id);
@@ -37,7 +37,7 @@ CREATE TABLE IF NOT EXISTS tasks (
     order_index INT,
     due_date DATE,
     created_at TIMESTAMP,
-    update_at TIMESTAMP
+    updated_at TIMESTAMP
 );
 
 CREATE INDEX IF NOT EXISTS idx_tasks_roadmap_id ON tasks(roadmap_id);

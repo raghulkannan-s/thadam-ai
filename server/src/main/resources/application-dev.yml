@@ -1,22 +1,46 @@
 spring:
+  datasource:
+    url: ${DB_URL:jdbc:postgresql://localhost:5432/thadam}
+    username: ${DB_USERNAME:postgres}
+    password: ${DB_PASSWORD:root}
+
+  data:
+    redis:
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6379}
+  cache:
+    type: redis
+    redis:
+      time-to-live: 600000 # 10 minutes cache TTL
+
   jpa:
     show-sql: true
     properties:
       hibernate:
         format_sql: true
+
   flyway:
     enabled: true
-    locations: classpath:db/migration
     baseline-on-migrate: true
+
   security:
     oauth2:
       client:
         registration:
           google:
-            client-id: ${GOOGLE_CLIENT_ID:placeholder}
-            client-secret: ${GOOGLE_CLIENT_SECRET:placeholder}
+            client-id: ${GOOGLE_CLIENT_ID}
+            client-secret: ${GOOGLE_CLIENT_SECRET}
 
 jwt:
-  secret: ${JWT_SECRET:raghulkannanisasoftwaredeveloperwhocancodeamazingthings}
+  secret: ${JWT_SECRET}
   expiration: ${JWT_EXPIRATION:86400000}
   refresh-expiration: ${JWT_REFRESH_EXPIRATION:604800000}
+
+app:
+  auth:
+    refresh-cookie:
+      secure: false
+      same-site: Lax
+
+  cors:
+    allowed-origins: http://localhost:3000,http://127.0.0.1:3000

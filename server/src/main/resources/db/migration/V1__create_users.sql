@@ -7,7 +7,7 @@ CREATE TABLE IF NOT EXISTS users (
     provider VARCHAR(50) NOT NULL DEFAULT 'LOCAL',
     provider_id VARCHAR(255),
     created_at TIMESTAMP,
-    update_at TIMESTAMP
+    updated_at TIMESTAMP
 );
 
 CREATE INDEX IF NOT EXISTS idx_users_email ON users(email);

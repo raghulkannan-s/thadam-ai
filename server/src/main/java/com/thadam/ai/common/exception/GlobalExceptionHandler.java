@@ -124,6 +124,42 @@ public class GlobalExceptionHandler {
                 .body(new ApiResponse<>(false, "Malformed JSON body", null));
     }
 
+    @ExceptionHandler(BadRequestException.class)
+    public ResponseEntity<ApiResponse<Object>> handleBadRequestException(
+            BadRequestException exception, HttpServletRequest request) {
+        log.warn("BAD_REQUEST path={} userId={} message={} correlationId={}",
+                getPath(request), getUserId(), exception.getMessage(), MDC.get("correlationId"));
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                .body(new ApiResponse<>(false, exception.getMessage(), null));
+    }
+
+    @ExceptionHandler(InsufficientCoinsException.class)
+    public ResponseEntity<ApiResponse<Object>> handleInsufficientCoinsException(
+            InsufficientCoinsException exception, HttpServletRequest request) {
+        log.warn("INSUFFICIENT_COINS path={} userId={} message={} correlationId={}",
+                getPath(request), getUserId(), exception.getMessage(), MDC.get("correlationId"));
+        return ResponseEntity.status(HttpStatus.PAYMENT_REQUIRED)
+                .body(new ApiResponse<>(false, exception.getMessage(), null));
+    }
+
+    @ExceptionHandler(IllegalArgumentException.class)
+    public ResponseEntity<ApiResponse<Object>> handleIllegalArgumentException(
+            IllegalArgumentException exception, HttpServletRequest request) {
+        log.warn("ILLEGAL_ARGUMENT path={} userId={} message={} correlationId={}",
+                getPath(request), getUserId(), exception.getMessage(), MDC.get("correlationId"));
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                .body(new ApiResponse<>(false, exception.getMessage(), null));
+    }
+
+    @ExceptionHandler(IllegalStateException.class)
+    public ResponseEntity<ApiResponse<Object>> handleIllegalStateException(
+            IllegalStateException exception, HttpServletRequest request) {
+        log.warn("ILLEGAL_STATE path={} userId={} message={} correlationId={}",
+                getPath(request), getUserId(), exception.getMessage(), MDC.get("correlationId"));
+        return ResponseEntity.status(HttpStatus.CONFLICT)
+                .body(new ApiResponse<>(false, exception.getMessage(), null));
+    }
+
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ApiResponse<Object>> handleGenericException(
             Exception exception, HttpServletRequest request) {
