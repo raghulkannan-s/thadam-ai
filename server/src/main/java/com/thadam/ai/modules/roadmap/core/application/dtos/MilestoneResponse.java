@@ -9,7 +9,7 @@ public record MilestoneResponse(
     Long id,
     String title,
     String description,
-    Long roadmapId,
+    String roadmapId,
     Integer orderIndex,
     LocalDate dueDate,
     MilestoneStatus status,

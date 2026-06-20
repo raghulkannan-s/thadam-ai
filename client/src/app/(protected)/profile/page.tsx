@@ -1,13 +1,13 @@
 "use client";
 
 import { useAuth } from "@/features/auth/context/auth-context";
-import { useBalance } from "@/features/ledger/context/balance-context";
+
 import Link from "next/link";
-import { PageLoader } from "@/components/ui/LoadingSpinner";
+import { PageLoader } from "@/shared/ui/LoadingSpinner";
 
 export default function ProfilePage() {
   const { user, isLoading: authLoading } = useAuth();
-  const { balance } = useBalance();
+
 
   if (authLoading) return <PageLoader />;
   if (!user) return null;
@@ -33,35 +33,35 @@ export default function ProfilePage() {
           <div>
             <h2 style={{ fontSize: "1.2rem", fontWeight: 700, color: "var(--text-primary)" }}>{user.name}</h2>
             <p style={{ fontSize: "0.85rem", color: "var(--text-secondary)", marginTop: "2px" }}>{user.email}</p>
-            <span className="badge badge-accent" style={{ marginTop: "6px", display: "inline-block" }}>{user.role}</span>
+            <span className="badge badge-accent" style={{ marginTop: "6px", display: "inline-block" }}>{user.role === 'USER' ? 'LEARNER' : user.role}</span>
           </div>
         </div>
       </div>
 
       <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px", marginTop: "16px" }}>
-        <Link href="/wallet" className="panel" style={{
+        <Link href="/community" className="panel" style={{
           borderRadius: "var(--radius-xl)", padding: "20px 24px",
           textDecoration: "none", display: "flex", alignItems: "center", gap: "14px",
         }}>
           <div style={{ width: 40, height: 40, borderRadius: "var(--radius-md)", background: "var(--accent-muted)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--accent-secondary)" strokeWidth="2" strokeLinecap="round"><rect x="2" y="6" width="20" height="12" rx="2" /><circle cx="16" cy="12" r="2" /><path d="M6 6V4a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v2" /></svg>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--accent-secondary)" strokeWidth="2" strokeLinecap="round"><circle cx="12" cy="12" r="10" /><polygon points="10 8 16 12 10 16 10 8" /></svg>
           </div>
           <div>
-            <p style={{ fontSize: "0.78rem", fontWeight: 600, color: "var(--text-secondary)" }}>Coin Balance</p>
-            <p style={{ fontSize: "1.1rem", fontWeight: 700, color: "var(--text-primary)" }}>{balance} coins</p>
+            <p style={{ fontSize: "0.78rem", fontWeight: 600, color: "var(--text-secondary)" }}>Explore</p>
+            <p style={{ fontSize: "1.1rem", fontWeight: 700, color: "var(--text-primary)" }}>Community</p>
           </div>
         </Link>
 
-        <Link href="/dashboard" className="panel" style={{
+        <Link href="/people" className="panel" style={{
           borderRadius: "var(--radius-xl)", padding: "20px 24px",
           textDecoration: "none", display: "flex", alignItems: "center", gap: "14px",
         }}>
           <div style={{ width: 40, height: 40, borderRadius: "var(--radius-md)", background: "var(--accent-muted)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--accent-secondary)" strokeWidth="2" strokeLinecap="round"><rect x="3" y="3" width="7" height="7" rx="1.5" /><rect x="14" y="3" width="7" height="7" rx="1.5" /><rect x="14" y="14" width="7" height="7" rx="1.5" /><rect x="3" y="14" width="7" height="7" rx="1.5" /></svg>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--accent-secondary)" strokeWidth="2" strokeLinecap="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" /><circle cx="9" cy="7" r="4" /><path d="M23 21v-2a4 4 0 0 0-3-3.87" /><path d="M16 3.13a4 4 0 0 1 0 7.75" /></svg>
           </div>
           <div>
-            <p style={{ fontSize: "0.78rem", fontWeight: 600, color: "var(--text-secondary)" }}>Dashboard</p>
-            <p style={{ fontSize: "1.1rem", fontWeight: 700, color: "var(--text-primary)" }}>My Roadmaps</p>
+            <p style={{ fontSize: "0.78rem", fontWeight: 600, color: "var(--text-secondary)" }}>Connect</p>
+            <p style={{ fontSize: "1.1rem", fontWeight: 700, color: "var(--text-primary)" }}>People</p>
           </div>
         </Link>
       </div>
@@ -73,7 +73,7 @@ export default function ProfilePage() {
             { label: "User ID", value: `#${user.id}` },
             { label: "Name", value: user.name },
             { label: "Email", value: user.email },
-            { label: "Role", value: user.role },
+            { label: "Role", value: user.role === 'USER' ? 'LEARNER' : user.role },
           ].map((item) => (
             <div key={item.label} style={{ display: "flex", justifyContent: "space-between", padding: "8px 0", borderBottom: "1px solid var(--border-subtle)", fontSize: "0.85rem" }}>
               <span style={{ color: "var(--text-secondary)" }}>{item.label}</span>
@@ -82,6 +82,7 @@ export default function ProfilePage() {
           ))}
         </div>
       </div>
+
     </div>
   );
 }

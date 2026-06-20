@@ -1,6 +1,7 @@
 package com.thadam.ai.modules.roadmap.core.application.services;
 
 import com.thadam.ai.modules.roadmap.core.domain.entities.Roadmap;
+import com.thadam.ai.modules.roadmap.core.domain.enums.RoadmapVisibility;
 import com.thadam.ai.modules.roadmap.infrastructure.repositories.RoadmapRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -24,7 +25,7 @@ public class RoadmapRankingScheduler {
     @Transactional
     public void recalculatePopularityScores() {
         log.info("Starting Roadmap Popularity Score Recalculation");
-        List<Roadmap> publicRoadmaps = roadmapRepository.findByVisibility("PUBLIC");
+        List<Roadmap> publicRoadmaps = roadmapRepository.findByVisibility(RoadmapVisibility.PUBLIC);
         
         LocalDateTime now = LocalDateTime.now();
 

@@ -12,6 +12,7 @@ import com.thadam.ai.modules.user.core.application.dtos.UserResponse;
 @Mapper(componentModel = "spring")
 public interface UserMapper {
 
+    @Mapping(source = "publicId", target = "id")
     UserResponse toUserResponse(User user);
 
     CreateUserResponse toCreateUserResponse(User user);

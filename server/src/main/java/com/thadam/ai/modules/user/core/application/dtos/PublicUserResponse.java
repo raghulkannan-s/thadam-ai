@@ -1,9 +1,11 @@
 package com.thadam.ai.modules.user.core.application.dtos;
 
 public record PublicUserResponse(
-    Long id,
+    String id,
     String name,
     String email,
     String role,
-    long roadmapCount
+    long roadmapCount,
+    String avatarUrl,
+    int coins
 ) {}

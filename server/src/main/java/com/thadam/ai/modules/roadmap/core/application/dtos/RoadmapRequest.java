@@ -4,5 +4,10 @@ import jakarta.validation.constraints.NotBlank;
 
 public record RoadmapRequest(
     @NotBlank String title,
-    String description
+    String description,
+    String difficulty,
+    Integer durationWeeks,
+    Double estimatedHoursPerDay,
+    java.time.LocalDateTime startDate,
+    String visibility
 ) {}

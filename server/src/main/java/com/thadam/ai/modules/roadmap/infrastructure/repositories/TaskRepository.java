@@ -25,6 +25,8 @@ public interface TaskRepository extends JpaRepository<Task, Long> {
 
     long countByMilestoneId(Long milestoneId);
 
+    long countByMilestoneIdAndStatus(Long milestoneId, TaskStatus status);
+
     @Query("SELECT t.roadmap.id, COUNT(t) FROM Task t WHERE t.roadmap.id IN :roadmapIds GROUP BY t.roadmap.id")
     List<Object[]> countByRoadmapIdIn(@org.springframework.data.repository.query.Param("roadmapIds") List<Long> roadmapIds);
 }

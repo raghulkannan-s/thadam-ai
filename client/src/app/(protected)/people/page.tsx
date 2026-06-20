@@ -3,7 +3,8 @@
 import { useEffect, useState, useCallback } from "react";
 import { useAuth } from "@/features/auth/context/auth-context";
 import { apiFetch } from "@/lib/api";
-import { useToast } from "@/components/ui/Toast";
+import { toast } from "sonner";
+import Link from "next/link";
 import type { PublicUser } from "@/lib/types";
 
 function UsersIcon() {
@@ -46,7 +47,7 @@ function SearchIcon() {
 
 export default function PeoplePage() {
   const { user } = useAuth();
-  const { addToast } = useToast();
+
   const [users, setUsers] = useState<PublicUser[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
@@ -56,11 +57,11 @@ export default function PeoplePage() {
       const res = await apiFetch<PublicUser[]>("/api/user/public");
       setUsers(res.data);
     } catch {
-      addToast("Failed to load users", "error");
+      toast.error("Failed to load users");
     } finally {
       setLoading(false);
     }
-  }, [addToast]);
+  }, []);
 
   useEffect(() => {
     if (user) {
@@ -123,9 +124,10 @@ export default function PeoplePage() {
       ) : (
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))", gap: "12px" }}>
           {filtered.map((u, i) => (
-            <div
+            <Link
+              href={`/creators/${u.id}`}
               key={u.id}
-              className="panel animate-fade-in-up"
+              className="panel animate-fade-in-up block no-underline hover:ring-2 hover:ring-[var(--accent-primary)]/50 transition-all cursor-pointer"
               style={{
                 padding: "20px",
                 borderRadius: "var(--radius-xl)",
@@ -154,15 +156,15 @@ export default function PeoplePage() {
                   <div style={{ fontWeight: 600, fontSize: "0.9rem", color: "var(--text-primary)" }}>
                     {u.name}
                   </div>
-                  {u.role !== "USER" && (
+                  {u.role && (
                     <span className="badge" style={{
                       fontSize: "0.65rem",
-                      background: u.role === "ADMIN" ? "rgba(245,158,11,0.15)" : "rgba(56,189,248,0.15)",
-                      color: u.role === "ADMIN" ? "var(--accent-secondary)" : "var(--info)",
-                      border: `1px solid ${u.role === "ADMIN" ? "rgba(245,158,11,0.2)" : "rgba(56,189,248,0.2)"}`,
+                      background: u.role === "ADMIN" ? "rgba(245,158,11,0.15)" : u.role === "CREATOR" ? "rgba(56,189,248,0.15)" : "var(--bg-elevated)",
+                      color: u.role === "ADMIN" ? "var(--accent-secondary)" : u.role === "CREATOR" ? "var(--info)" : "var(--text-secondary)",
+                      border: `1px solid ${u.role === "ADMIN" ? "rgba(245,158,11,0.2)" : u.role === "CREATOR" ? "rgba(56,189,248,0.2)" : "var(--border-subtle)"}`,
                       marginTop: "4px",
                     }}>
-                      {u.role}
+                      {u.role === 'USER' ? 'LEARNER' : u.role}
                     </span>
                   )}
                 </div>
@@ -177,7 +179,7 @@ export default function PeoplePage() {
                   {u.roadmapCount} roadmaps
                 </div>
               </div>
-            </div>
+            </Link>
           ))}
         </div>
       )}

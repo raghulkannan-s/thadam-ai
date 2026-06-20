@@ -9,7 +9,6 @@ import org.slf4j.MDC;
 import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
-import org.springframework.web.util.ContentCachingRequestWrapper;
 import org.springframework.web.util.ContentCachingResponseWrapper;
 
 import jakarta.servlet.FilterChain;
@@ -31,19 +30,18 @@ public class RequestLoggingFilter extends OncePerRequestFilter {
                                     HttpServletResponse response,
                                     FilterChain filterChain) throws ServletException, IOException {
 
-        ContentCachingRequestWrapper requestWrapper = new ContentCachingRequestWrapper(request);
         ContentCachingResponseWrapper responseWrapper = new ContentCachingResponseWrapper(response);
 
         long startTime = System.currentTimeMillis();
 
-        String method = requestWrapper.getMethod();
-        String path = getSanitizedPath(requestWrapper);
-        String query = sanitizeQueryString(requestWrapper.getQueryString());
+        String method = request.getMethod();
+        String path = getSanitizedPath(request);
+        String query = sanitizeQueryString(request.getQueryString());
 
         log.info("REQUEST {} {} {}", method, path, query != null ? "?" + query : "");
 
         try {
-            filterChain.doFilter(requestWrapper, responseWrapper);
+            filterChain.doFilter(request, responseWrapper);
         } finally {
             long duration = System.currentTimeMillis() - startTime;
             int status = responseWrapper.getStatus();

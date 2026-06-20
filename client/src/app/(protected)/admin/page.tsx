@@ -1,32 +1,29 @@
 "use client";
 
 import { useAuth } from "@/features/auth/context/auth-context";
-import { PageLoader, Spinner } from "@/components/ui/LoadingSpinner";
+import { PageLoader, Spinner } from "@/shared/ui/LoadingSpinner";
 import { useEffect, useState, useCallback } from "react";
 import { apiFetch } from "@/lib/api";
-import { useToast } from "@/components/ui/Toast";
+import { toast } from "sonner";
 import type { AdminUserResponse } from "@/lib/types";
 
 export default function AdminPage() {
   const { user, isLoading } = useAuth();
-  const { addToast } = useToast();
+
   const [users, setUsers] = useState<AdminUserResponse[]>([]);
   const [loading, setLoading] = useState(true);
-  const [updatingId, setUpdatingId] = useState<number | null>(null);
+  const [updatingId, setUpdatingId] = useState<string | null>(null);
 
   const loadUsers = useCallback(async () => {
     try {
       const res = await apiFetch<AdminUserResponse[]>("/api/admin/users");
       setUsers(res.data);
     } catch (err) {
-      addToast(
-        err instanceof Error ? err.message : "Failed to load users",
-        "error",
-      );
+      toast.error(err instanceof Error ? err.message : "Failed to load users");
     } finally {
       setLoading(false);
     }
-  }, [addToast]);
+  }, []);
 
   useEffect(() => {
     if (user && user.role === "ADMIN") {
@@ -36,7 +33,7 @@ export default function AdminPage() {
     }
   }, [user, loadUsers]);
 
-  const handleRoleChange = async (userId: number, newRole: string) => {
+  const handleRoleChange = async (userId: string, newRole: string) => {
     setUpdatingId(userId);
     try {
       const res = await apiFetch<AdminUserResponse>(
@@ -47,30 +44,24 @@ export default function AdminPage() {
         },
       );
       setUsers((prev) => prev.map((u) => (u.id === userId ? res.data : u)));
-      addToast("Role updated successfully", "success");
+      toast.success("Role updated successfully");
     } catch (err) {
-      addToast(
-        err instanceof Error ? err.message : "Failed to update role",
-        "error",
-      );
+      toast.error(err instanceof Error ? err.message : "Failed to update role");
     } finally {
       setUpdatingId(null);
     }
   };
 
-  const handleDelete = async (userId: number) => {
+  const handleDelete = async (userId: string) => {
     if (!confirm("Are you sure you want to delete this user?")) return;
     try {
       await apiFetch(`/api/admin/users/${userId}`, {
         method: "DELETE",
       });
       setUsers((prev) => prev.filter((u) => u.id !== userId));
-      addToast("User deleted", "success");
+      toast.success("User deleted");
     } catch (err) {
-      addToast(
-        err instanceof Error ? err.message : "Failed to delete user",
-        "error",
-      );
+      toast.error(err instanceof Error ? err.message : "Failed to delete user");
     }
   };
 
@@ -195,7 +186,7 @@ export default function AdminPage() {
                         minWidth: "100px",
                       }}
                     >
-                      <option value="USER">USER</option>
+                      <option value="USER">LEARNER</option>
                       <option value="MODERATOR">MODERATOR</option>
                       <option value="ADMIN">ADMIN</option>
                     </select>

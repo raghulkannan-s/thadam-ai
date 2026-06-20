@@ -15,6 +15,7 @@ import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
+import jakarta.persistence.PrePersist;
 import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -38,6 +39,21 @@ public class User extends BaseEntity implements UserDetails {
 
     private String password;
 
+    @Column(name = "public_id", unique = true)
+    private String publicId;
+
+    @Column(name = "avatar_url", length = 1024)
+    private String avatarUrl;
+
+    @Column(name = "coins", nullable = false, columnDefinition = "integer default 0")
+    private int coins = 0;
+
+    @PrePersist
+    public void generatePublicId() {
+        if (this.publicId == null) {
+            this.publicId = java.util.UUID.randomUUID().toString();
+        }
+    }
     @Enumerated(EnumType.STRING)
     private Role role;
 

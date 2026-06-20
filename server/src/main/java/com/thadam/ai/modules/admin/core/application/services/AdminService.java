@@ -39,16 +39,16 @@ public class AdminService {
 
     @Transactional(readOnly = true)
     @Cacheable(value = "users", key = "#id")
-    public AdminUserResponse getUserById(Long id) {
-        User user = userRepository.findById(id)
+    public AdminUserResponse getUserById(String id) {
+        User user = userRepository.findByPublicId(id)
                 .orElseThrow(() -> new NotFoundException("User not found with id: " + id));
         return toAdminResponse(user);
     }
 
     @Transactional
     @CacheEvict(value = "users", key = "#id")
-    public AdminUserResponse changeUserRole(Long id, ChangeRoleRequest request) {
-        User user = userRepository.findById(id)
+    public AdminUserResponse changeUserRole(String id, ChangeRoleRequest request) {
+        User user = userRepository.findByPublicId(id)
                 .orElseThrow(() -> new NotFoundException("User not found with id: " + id));
         var oldRole = user.getRole();
         user.setRole(request.role());
@@ -57,28 +57,28 @@ public class AdminService {
         String performedBy = MDC.get("userId");
         log.info("ROLE_CHANGED targetUserId={} oldRole={} newRole={} performedBy={} correlationId={}",
                 id, oldRole, request.role(), performedBy, MDC.get("correlationId"));
-        auditService.roleChanged(id, oldRole, request.role(), performedBy != null ? performedBy : "system");
+        auditService.roleChanged(user.getId(), oldRole, request.role(), performedBy != null ? performedBy : "system");
 
         return toAdminResponse(saved);
     }
 
     @Transactional
     @CacheEvict(value = "users", key = "#id")
-    public void deleteUser(Long id) {
-        User user = userRepository.findById(id)
+    public void deleteUser(String id) {
+        User user = userRepository.findByPublicId(id)
                 .orElseThrow(() -> new NotFoundException("User not found with id: " + id));
 
         String performedBy = MDC.get("userId");
         log.info("USER_DELETED targetUserId={} email={} performedBy={} correlationId={}",
                 id, user.getEmail(), performedBy, MDC.get("correlationId"));
-        auditService.userDeleted(id, performedBy != null ? performedBy : "system");
+        auditService.userDeleted(user.getId(), performedBy != null ? performedBy : "system");
 
         userRepository.delete(user);
     }
 
     private AdminUserResponse toAdminResponse(User user) {
         return new AdminUserResponse(
-                user.getId(),
+                user.getPublicId(),
                 user.getName(),
                 user.getEmail(),
                 user.getRole(),

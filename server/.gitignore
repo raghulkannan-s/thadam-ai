@@ -33,6 +33,7 @@ build/
 .vscode/
 prompts/
 /modules
+/logs
 
 # Environment
 .env

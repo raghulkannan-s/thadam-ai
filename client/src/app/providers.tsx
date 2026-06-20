@@ -1,16 +1,21 @@
 "use client";
 
 import type { ReactNode } from "react";
-import { AuthProvider } from "@/features/auth/providers/AuthProvider";
+import { AuthProvider } from "@/features/auth/context/auth-context";
 import { QueryProvider } from "@/providers/QueryProvider";
+import { ToastProvider } from "@/shared/ui/Toast";
+import { ThemeProvider } from "@/shared/theme/ThemeProvider";
 
-// Note: ToastProvider, ThemeProvider can be added back here once they are refactored.
 export function Providers({ children }: { children: ReactNode }) {
   return (
-    <QueryProvider>
-      <AuthProvider>
-        {children}
-      </AuthProvider>
-    </QueryProvider>
+    <ThemeProvider attribute="data-theme" defaultTheme="light" enableSystem disableTransitionOnChange>
+      <QueryProvider>
+        <ToastProvider>
+          <AuthProvider>
+            {children}
+          </AuthProvider>
+        </ToastProvider>
+      </QueryProvider>
+    </ThemeProvider>
   );
 }

@@ -105,7 +105,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
     };
     return () => channel.close();
-  }, []);
+  }, [refresh]);
 
   const login = useCallback(
     async (email: string, password: string) => {

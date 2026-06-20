@@ -1,7 +1,9 @@
 "use client";
 
 import Link from "next/link";
-import { useAuth } from "@/features/auth/providers/AuthProvider";
+import { useAuth } from "@/features/auth/context/auth-context";
+import { LogOut } from "lucide-react";
+import { Button } from "@/shared/ui/Button";
 
 const steps = [
   {
@@ -27,11 +29,49 @@ const steps = [
 ];
 
 export default function Home() {
-  const { user } = useAuth();
+  const { user, logout } = useAuth();
 
   return (
-    <div className="overflow-hidden">
-      <section className="flex flex-col items-center text-center px-6 pt-[100px] pb-[60px] max-w-[720px] mx-auto">
+    <div className="overflow-hidden relative min-h-screen">
+      
+      {/* Top Header */}
+      <header className="absolute top-0 w-full flex justify-between items-center px-6 py-4 z-10 border-b border-[var(--border-subtle)] bg-[var(--bg-surface)]/80 backdrop-blur-md">
+        <div className="flex items-center">
+          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-[var(--accent-primary)] text-white font-bold shadow-lg">
+            T
+          </div>
+          <span className="ml-3 text-lg font-bold tracking-tight text-[var(--text-primary)]">
+            Thadam
+          </span>
+        </div>
+        <div className="flex items-center gap-4">
+          {user ? (
+            <>
+              <Link href="/community" className="text-sm font-semibold text-[var(--text-primary)] hover:text-[var(--accent-primary)] transition-colors">
+                Dashboard
+              </Link>
+              <button 
+                onClick={logout}
+                className="flex items-center gap-2 text-sm font-medium text-[var(--text-secondary)] hover:text-[var(--error)] transition-colors"
+              >
+                <LogOut className="h-4 w-4" />
+                Sign out
+              </button>
+            </>
+          ) : (
+            <>
+              <Link href="/login" className="text-sm font-semibold text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors">
+                Sign in
+              </Link>
+              <Link href="/register">
+                <Button variant="primary" size="sm">Get Started</Button>
+              </Link>
+            </>
+          )}
+        </div>
+      </header>
+
+      <section className="flex flex-col items-center text-center px-6 pt-[120px] pb-[60px] max-w-[720px] mx-auto">
         <div className="badge badge-accent animate-fade-in mb-6">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
             <line x1="12" y1="5" x2="12" y2="19" />
@@ -51,23 +91,21 @@ export default function Home() {
           into actionable checklists. Set a goal, track daily, build momentum.
         </p>
 
-        <div className="animate-fade-in-up delay-300 flex flex-wrap gap-3 mt-9 justify-center">
-          <Link
-            href={user ? "/community" : "/register"}
-            className="btn btn-primary btn-pill px-7 py-3 text-[0.9rem] no-underline"
-          >
-            {user ? "Go to community" : "Start your checklist"}
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-              <line x1="5" y1="12" x2="19" y2="12" />
-              <polyline points="12 5 19 12 12 19" />
-            </svg>
+        <div className="animate-fade-in-up delay-300 flex flex-wrap gap-4 mt-10 justify-center">
+          <Link href={user ? "/community" : "/register"} className="no-underline">
+            <Button variant="primary" size="lg" className="px-8 font-semibold shadow-lg shadow-[var(--accent-primary)]/20">
+              {user ? "Go to Dashboard" : "Start your checklist"}
+              <svg className="ml-2" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <line x1="5" y1="12" x2="19" y2="12" />
+                <polyline points="12 5 19 12 12 19" />
+              </svg>
+            </Button>
           </Link>
           {!user && (
-            <Link
-              href="/login"
-              className="btn btn-secondary btn-pill px-7 py-3 text-[0.9rem] no-underline"
-            >
-              Sign in
+            <Link href="/login" className="no-underline">
+              <Button variant="secondary" size="lg" className="px-8 font-semibold">
+                Sign in
+              </Button>
             </Link>
           )}
         </div>
@@ -113,13 +151,6 @@ export default function Home() {
             AI-generated roadmaps, checklists, streaks, community voting, forking,
             and detailed progress tracking — all in one place.
           </p>
-          <div className="flex justify-center gap-2 mt-7">
-            <div className="kbd"><kbd>⌘</kbd></div>
-            <div className="kbd"><kbd>K</kbd></div>
-            <span className="text-[0.8rem] text-[var(--text-tertiary)] ml-1">
-              Quick navigation
-            </span>
-          </div>
         </div>
       </section>
 
@@ -131,4 +162,3 @@ export default function Home() {
     </div>
   );
 }
-

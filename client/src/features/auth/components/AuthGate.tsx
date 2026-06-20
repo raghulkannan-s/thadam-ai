@@ -6,7 +6,7 @@ import { usePathname, useRouter } from "next/navigation";
 import { useAuth } from "@/features/auth/context/auth-context";
 import type { Role } from "@/lib/types";
 import { loginPathForRedirect } from "@/features/auth/context/auth-redirect";
-import { PageLoader } from "@/components/ui/LoadingSpinner";
+import { PageLoader } from "@/shared/ui/LoadingSpinner";
 
 type AuthGateProps = {
   children: ReactNode;

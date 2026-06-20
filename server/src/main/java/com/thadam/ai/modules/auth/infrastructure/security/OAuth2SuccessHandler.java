@@ -58,6 +58,7 @@ public class OAuth2SuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
         String email = (String) attributes.get("email");
         String name = (String) attributes.get("name");
         String providerId = (String) attributes.get("sub");
+        String picture = (String) attributes.get("picture");
 
         if (email == null || email.isBlank()) {
             log.warn("OAUTH_LOGIN_FAILURE reason=email_not_provided_by_provider correlationId={}",
@@ -78,6 +79,7 @@ public class OAuth2SuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
                     .role(Role.USER)
                     .provider(AuthProvider.GOOGLE)
                     .providerId(providerId)
+                    .avatarUrl(picture)
                     .build();
             User saved = userRepository.save(newUser);
             log.info("OAUTH_USER_CREATED userId={} email={} correlationId={}",
@@ -91,9 +93,12 @@ public class OAuth2SuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
             user = userRepository.save(user);
             log.info("OAUTH_LINK_ACCOUNT userId={} email={} provider=google correlationId={}",
                     user.getId(), email, MDC.get("correlationId"));
+        } else if (user.getAvatarUrl() == null && picture != null) {
+            user.setAvatarUrl(picture);
+            user = userRepository.save(user);
         }
 
-        MDC.put("userId", String.valueOf(user.getId()));
+        MDC.put("userId", user.getPublicId());
 
         String accessToken = jwtService.generateToken(user);
         RefreshToken refreshToken = refreshTokenService.createRefreshToken(user);

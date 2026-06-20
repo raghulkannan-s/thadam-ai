@@ -55,9 +55,17 @@ public class RoadmapController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<ApiResponse<RoadmapResponse>> getRoadmap(@PathVariable Long id) {
-        RoadmapResponse response = roadmapService.getRoadmapById(id);
+    public ResponseEntity<ApiResponse<CommunityRoadmapResponse>> getRoadmap(
+            @PathVariable String id,
+            @AuthenticationPrincipal User user) {
+        CommunityRoadmapResponse response = roadmapService.getCommunityRoadmapById(id, user);
         return ResponseEntity.ok(ApiResponse.success(response));
+    }
+
+    @PostMapping("/{id}/view")
+    public ResponseEntity<ApiResponse<Void>> recordView(@PathVariable String id) {
+        roadmapService.incrementViewCount(id);
+        return ResponseEntity.ok(ApiResponse.success(null));
     }
 
     @GetMapping
@@ -69,16 +77,26 @@ public class RoadmapController {
     }
 
     @GetMapping("/search")
-    public ResponseEntity<ApiResponse<Page<RoadmapResponse>>> searchRoadmaps(
+    public ResponseEntity<ApiResponse<Page<CommunityRoadmapResponse>>> searchRoadmaps(
             @RequestParam String q,
-            @PageableDefault(sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable) {
-        Page<RoadmapResponse> roadmaps = roadmapService.searchRoadmaps(q, pageable);
+            @PageableDefault(sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable,
+            @AuthenticationPrincipal User user) {
+        Page<CommunityRoadmapResponse> roadmaps = roadmapService.searchRoadmaps(q, pageable, user);
+        return ResponseEntity.ok(ApiResponse.success(roadmaps));
+    }
+
+    @GetMapping("/user/{userId}")
+    public ResponseEntity<ApiResponse<Page<CommunityRoadmapResponse>>> getRoadmapsByUserId(
+            @PathVariable String userId,
+            @PageableDefault(sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable,
+            @AuthenticationPrincipal User user) {
+        Page<CommunityRoadmapResponse> roadmaps = roadmapService.getRoadmapsByUserId(userId, pageable, user);
         return ResponseEntity.ok(ApiResponse.success(roadmaps));
     }
 
     @PutMapping("/{id}")
     public ResponseEntity<ApiResponse<RoadmapResponse>> updateRoadmap(
-            @PathVariable Long id,
+            @PathVariable String id,
             @Valid @RequestBody RoadmapUpdateRequest request,
             @AuthenticationPrincipal User user) {
         RoadmapResponse response = roadmapService.updateRoadmap(id, request, user);
@@ -87,7 +105,7 @@ public class RoadmapController {
 
     @DeleteMapping("/{id}")
     public ResponseEntity<ApiResponse<Void>> deleteRoadmap(
-            @PathVariable Long id,
+            @PathVariable String id,
             @AuthenticationPrincipal User user) {
         roadmapService.deleteRoadmap(id, user);
         return ResponseEntity.noContent().build();
@@ -97,13 +115,13 @@ public class RoadmapController {
     public ResponseEntity<ApiResponse<RoadmapResponse>> generateRoadmap(
             @Valid @RequestBody RoadmapGenerationRequest request,
             @AuthenticationPrincipal User user) {
-        RoadmapResponse response = roadmapGenerationService.generateRoadmap(request.prompt(), user);
+        RoadmapResponse response = roadmapGenerationService.generateRoadmap(request, user);
         return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.success(response));
     }
 
     @PostMapping("/{roadmapId}/milestones")
     public ResponseEntity<ApiResponse<MilestoneResponse>> createMilestone(
-            @PathVariable Long roadmapId,
+            @PathVariable String roadmapId,
             @Valid @RequestBody MilestoneRequest request,
             @AuthenticationPrincipal User user) {
         MilestoneResponse response = roadmapService.createMilestone(roadmapId, request, user);
@@ -135,7 +153,7 @@ public class RoadmapController {
 
     @PostMapping("/{roadmapId}/tasks")
     public ResponseEntity<ApiResponse<TaskResponse>> createTask(
-            @PathVariable Long roadmapId,
+            @PathVariable String roadmapId,
             @Valid @RequestBody TaskRequest request,
             @AuthenticationPrincipal User user) {
         TaskResponse response = roadmapService.createTask(roadmapId, request, user);
@@ -144,7 +162,7 @@ public class RoadmapController {
 
     @GetMapping("/{roadmapId}/tasks")
     public ResponseEntity<ApiResponse<Page<TaskResponse>>> getTasksByRoadmap(
-            @PathVariable Long roadmapId,
+            @PathVariable String roadmapId,
             @PageableDefault(sort = "createdAt", direction = Sort.Direction.ASC) Pageable pageable) {
         Page<TaskResponse> tasks = roadmapService.getTasksByRoadmap(roadmapId, pageable);
         return ResponseEntity.ok(ApiResponse.success(tasks));
@@ -152,7 +170,7 @@ public class RoadmapController {
 
     @GetMapping("/{roadmapId}/milestones")
     public ResponseEntity<ApiResponse<List<MilestoneResponse>>> getMilestonesByRoadmap(
-            @PathVariable Long roadmapId) {
+            @PathVariable String roadmapId) {
         List<MilestoneResponse> milestones = roadmapService.getMilestonesByRoadmap(roadmapId);
         return ResponseEntity.ok(ApiResponse.success(milestones));
     }
@@ -182,7 +200,7 @@ public class RoadmapController {
 
     @PostMapping("/{id}/fork")
     public ResponseEntity<ApiResponse<RoadmapResponse>> forkRoadmap(
-            @PathVariable Long id,
+            @PathVariable String id,
             @AuthenticationPrincipal User user) {
         RoadmapResponse response = roadmapService.forkRoadmap(id, user);
         return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.success(response));
