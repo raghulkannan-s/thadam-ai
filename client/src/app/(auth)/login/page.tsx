@@ -35,16 +35,19 @@ export default function LoginPage() {
 
   const router = useRouter();
 
-  const getRedirectTarget = () => {
-    if (typeof window === "undefined") return "/community";
-    return sanitizeRedirectPath(new URLSearchParams(window.location.search).get("redirect"));
-  };
+  const [redirectTarget, setRedirectTarget] = useState("/community");
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      setRedirectTarget(sanitizeRedirectPath(new URLSearchParams(window.location.search).get("redirect")));
+    }
+  }, []);
 
   useEffect(() => {
     if (!isLoading && user) {
-      router.replace(getRedirectTarget());
+      router.replace(redirectTarget);
     }
-  }, [isLoading, router, user]);
+  }, [isLoading, router, user, redirectTarget]);
 
   const onSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
@@ -54,7 +57,7 @@ export default function LoginPage() {
     try {
       await login(email, password);
       toast.success("Welcome back! Redirecting");
-      router.push(getRedirectTarget());
+      router.push(redirectTarget);
     } catch (err) {
       const message = err instanceof Error ? err.message : "Login failed";
       setError(message);
@@ -66,7 +69,7 @@ export default function LoginPage() {
 
   const handleOAuth = () => {
     if (typeof window !== "undefined") {
-      window.sessionStorage.setItem("oauthRedirect", getRedirectTarget());
+      window.sessionStorage.setItem("oauthRedirect", redirectTarget);
     }
     setOauthLoading(true);
     window.location.href = GOOGLE_OAUTH_URL;
@@ -109,7 +112,7 @@ export default function LoginPage() {
           </div>
 
           {(sessionMessage || error) && (
-            <div className="mb-6 p-4 rounded-xl border border-red-500/20 bg-red-500/10 text-red-600 flex items-start gap-3 animate-shake">
+            <div className="mb-6 p-4 rounded-xl border border-red-500/20 bg-red-500/10 text-red-600 flex items-start gap-3 animate-fade-in">
               <div className="mt-0.5">
                 <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -208,7 +211,7 @@ export default function LoginPage() {
 
           <p className="mt-10 text-center text-[var(--text-secondary)] font-medium">
             Don&apos;t have an account?{" "}
-            <Link href={`/register?redirect=${encodeURIComponent(getRedirectTarget())}`} className="text-[var(--accent-primary)] font-bold hover:underline transition-colors">
+            <Link href={`/register?redirect=${encodeURIComponent(redirectTarget)}`} className="text-[var(--accent-primary)] font-bold hover:underline transition-colors">
               Sign up for free
             </Link>
           </p>

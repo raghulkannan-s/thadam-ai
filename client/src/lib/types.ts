@@ -4,6 +4,7 @@ export interface User {
   email: string;
   role: string;
   avatarUrl?: string;
+  coins?: number;
   createdAt?: string;
 }
 
@@ -37,6 +38,7 @@ export interface PublicUser {
   roadmapCount?: number;
   avatarUrl?: string;
   bio?: string;
+  coins?: number;
 }
 
 export type ToastType = "success" | "error" | "info";

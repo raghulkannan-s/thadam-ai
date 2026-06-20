@@ -31,6 +31,7 @@ public class LedgerService {
     private static final Logger log = LoggerFactory.getLogger(LedgerService.class);
 
     private final CoinTransactionRepository coinTransactionRepository;
+    private final com.thadam.ai.modules.auth.infrastructure.repositories.UserRepository userRepository;
     private final ApplicationEventPublisher eventPublisher;
     private final AuditService auditService;
 
@@ -64,6 +65,9 @@ public class LedgerService {
                 .referenceId(request.referenceId())
                 .createdAt(java.time.LocalDateTime.now())
                 .build();
+
+        user.setCoins(balanceAfter);
+        userRepository.save(user);
 
         CoinTransaction saved = coinTransactionRepository.save(transaction);
         eventPublisher.publishEvent(new CoinTransactionEvent(saved));
