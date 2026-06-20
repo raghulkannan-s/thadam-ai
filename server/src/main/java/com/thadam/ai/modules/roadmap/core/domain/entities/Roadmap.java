@@ -3,6 +3,7 @@ package com.thadam.ai.modules.roadmap.core.domain.entities;
 import com.thadam.ai.modules.auth.core.domain.entities.User;
 import com.thadam.ai.common.entity.BaseEntity;
 import com.thadam.ai.modules.roadmap.core.domain.enums.RoadmapStatus;
+import com.thadam.ai.modules.roadmap.core.domain.enums.RoadmapVisibility;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -11,7 +12,9 @@ import jakarta.persistence.Enumerated;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
+import jakarta.persistence.PrePersist;
 import jakarta.persistence.Table;
+import java.util.UUID;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -27,8 +30,18 @@ import lombok.Setter;
 @AllArgsConstructor
 public class Roadmap extends BaseEntity {
 
+    @Column(name = "public_id", unique = true, updatable = false)
+    private String publicId;
+
     @Column(nullable = false)
     private String title;
+
+    @PrePersist
+    public void prePersist() {
+        if (this.publicId == null) {
+            this.publicId = UUID.randomUUID().toString();
+        }
+    }
 
     @Column(columnDefinition = "TEXT")
     private String description;
@@ -46,9 +59,25 @@ public class Roadmap extends BaseEntity {
     @JoinColumn(name = "forked_from_id")
     private Roadmap forkedFrom;
 
+    @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     @Builder.Default
-    private String visibility = "PUBLIC";
+    private RoadmapVisibility visibility = RoadmapVisibility.PUBLIC;
+
+    @Column(nullable = false)
+    @Builder.Default
+    private String difficulty = "INTERMEDIATE";
+
+    @Column(name = "duration_weeks", nullable = false)
+    @Builder.Default
+    private Integer durationWeeks = 4;
+
+    @Column(name = "estimated_hours_per_day", nullable = false)
+    @Builder.Default
+    private Double estimatedHoursPerDay = 1.0;
+
+    @Column(name = "start_date")
+    private java.time.LocalDateTime startDate;
 
     @Column(name = "popularity_score", nullable = false)
     @Builder.Default
@@ -69,4 +98,12 @@ public class Roadmap extends BaseEntity {
     @Column(name = "completion_count", nullable = false)
     @Builder.Default
     private Long completionCount = 0L;
+
+    @jakarta.persistence.OneToMany(mappedBy = "roadmap", cascade = jakarta.persistence.CascadeType.ALL, orphanRemoval = true)
+    @Builder.Default
+    private java.util.List<Milestone> milestones = new java.util.ArrayList<>();
+
+    @jakarta.persistence.OneToMany(mappedBy = "roadmap", cascade = jakarta.persistence.CascadeType.ALL, orphanRemoval = true)
+    @Builder.Default
+    private java.util.List<Task> tasks = new java.util.ArrayList<>();
 }

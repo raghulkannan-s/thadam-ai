@@ -48,4 +48,8 @@ public class Milestone extends BaseEntity {
     @Column(nullable = false)
     @Builder.Default
     private MilestoneStatus status = MilestoneStatus.PENDING;
+
+    @jakarta.persistence.OneToMany(mappedBy = "milestone", cascade = jakarta.persistence.CascadeType.ALL, orphanRemoval = true)
+    @Builder.Default
+    private java.util.List<Task> tasks = new java.util.ArrayList<>();
 }

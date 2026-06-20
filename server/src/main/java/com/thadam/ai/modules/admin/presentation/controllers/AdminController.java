@@ -35,20 +35,20 @@ public class AdminController {
     }
 
     @GetMapping("/users/{id}")
-    public ResponseEntity<ApiResponse<AdminUserResponse>> getUserById(@PathVariable Long id) {
+    public ResponseEntity<ApiResponse<AdminUserResponse>> getUserById(@PathVariable String id) {
         AdminUserResponse user = adminService.getUserById(id);
         return ResponseEntity.ok(ApiResponse.success(user));
     }
 
     @DeleteMapping("/users/{id}")
-    public ResponseEntity<ApiResponse<Void>> deleteUser(@PathVariable Long id) {
+    public ResponseEntity<ApiResponse<Void>> deleteUser(@PathVariable String id) {
         adminService.deleteUser(id);
         return ResponseEntity.ok(ApiResponse.success(null));
     }
 
     @PatchMapping("/users/{id}/role")
     public ResponseEntity<ApiResponse<AdminUserResponse>> changeUserRole(
-            @PathVariable Long id,
+            @PathVariable String id,
             @Valid @RequestBody ChangeRoleRequest request) {
         AdminUserResponse user = adminService.changeUserRole(id, request);
         return ResponseEntity.ok(ApiResponse.success(user));

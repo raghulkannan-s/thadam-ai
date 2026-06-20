@@ -2,7 +2,7 @@
 
 **Turn AI-generated roadmaps into living checklists you can finish.**
 
-Thadam AI is a full-stack application that uses Google Gemini to generate structured learning roadmaps, then breaks them down into milestones and actionable tasks with progress tracking, gamified coin rewards, and role-based administration.
+Thadam AI is a full-stack application that uses Google Gemini to generate structured learning roadmaps. It has completed a comprehensive 12-Phase Stabilization Audit and features a highly isolated Feature-Sliced Design (FSD) React frontend communicating with a Modular Monolith Spring Boot backend.
 
 ---
 
@@ -10,11 +10,11 @@ Thadam AI is a full-stack application that uses Google Gemini to generate struct
 
 **Frontend** | **Backend** | **Infrastructure**
 ---|---|---
-Next.js 16.2.6 | Java 21 + Spring Boot 3.5.14 | PostgreSQL 16 (Docker)
-React 19.2.6 | Spring Security + JWT (jjwt 0.12.7) | Redis 7 (Docker)
+Next.js 16.2.6 | Java 21 + Spring Boot 3.5.14 | Neon Serverless PostgreSQL
+React 19.2.6 | Spring Security + JWT (jjwt 0.12.7) | Redis (Managed)
 TypeScript 5 | Spring OAuth2 Client (Google) | Flyway migrations
-Tailwind CSS 4 | Spring Data JPA | Docker Compose
-Framer Motion 12.40 | MapStruct 1.6.3 | Maven Wrapper
+Tailwind CSS 4 | Spring Data JPA | Maven Wrapper
+Framer Motion 12.40 | MapStruct 1.6.3 | Zoho AppSail (Hosting)
 
 ---
 
@@ -39,34 +39,33 @@ Framer Motion 12.40 | MapStruct 1.6.3 | Maven Wrapper
 
 ```
 client/                     # Next.js 16 frontend (port 3000)
-  app/
-    components/             # Shared UI (Sidebar, Toast, PageTransition, etc.)
-    dashboard/              # Main app: AI generator + checklists
-    community/              # Browse public roadmaps with voting and forking
-    people/                 # Community member directory
-    admin/                  # User management panel (ADMIN only)
-    login/ + register/      # Auth pages
-    oauth2/redirect/        # Google OAuth callback
-  lib/
-    api.ts                  # JWT-aware API client with refresh interceptor
-    auth-context.tsx         # Auth state management
-    theme-context.tsx        # Dark/light theme toggle
-    types.ts                # Shared DTO types
+  src/
+    app/                    # Next.js App Router pages (Route Groups)
+    core/                   # Centralized API logic (axios, interceptors)
+    features/               # Isolated Domain Modules (FSD)
+      auth/                 # Login, Registration, JWT Context
+      roadmap/              # Queries, mutations, UI for roadmap logic
+      community/            # Feed logic
+    shared/                 # Shared UI (Avatar, Button, Card, Toast)
+    types/                  # Global TypeScript Interfaces
 
 server/                     # Spring Boot backend (port 5000)
-  src/main/java/com/thadam/ai/
-    auth/                   # Auth bounded context (JWT, OAuth2, refresh tokens)
-    roadmap/                # Roadmap bounded context (generation, CRUD)
-    ledger/                 # Coin ledger bounded context
-    admin/                  # Admin bounded context
-    user/                   # User bounded context
-    common/                 # Shared config (Gemini, Redis, exceptions)
+  src/main/java/com/thadam/ai/modules/
+    auth/                   # Auth module (Clean Architecture)
+      presentation/         # Controllers
+      core/application/     # Services, DTOs
+      core/domain/          # Entities
+      infrastructure/       # Security, repositories
+    roadmap/                # Roadmap module
+    ledger/                 # Coin ledger module
+    admin/                  # Admin module
+    user/                   # User module
   src/main/resources/
     db/migration/           # Flyway migrations (V1–V5)
     prompts/                # Gemini prompt templates
 ```
 
-The backend follows a bounded-context package layout with clear separation. Each context has its own controller, service, repository, DTOs, and entities.
+The backend follows a Modular Monolith (Clean Architecture) package layout with clear separation. Each module has its own presentation, core application, core domain, and infrastructure layers. The frontend uses a scalable Feature-Sliced structure.
 
 ---
 
@@ -76,8 +75,8 @@ The backend follows a bounded-context package layout with clear separation. Each
 
 - Node.js 20+
 - Java 21 (JDK)
-- Docker Desktop (for PostgreSQL + Redis)
 - A Google Gemini API key ([get one here](https://aistudio.google.com/app/apikey))
+- Neon Serverless PostgreSQL Database
 
 ### 1. Clone & Install
 
@@ -91,7 +90,7 @@ npm install
 
 # Backend
 cd ../server
-.\mvnw dependency:go-offline   # or: mvn dependency:go-offline
+.\mvnw dependency:go-offline 
 ```
 
 ### 2. Environment
@@ -113,49 +112,23 @@ Required variables in `server/.env`:
 
 Optional: `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET` for Google OAuth.
 
-### 3. Start Infrastructure
+### 3. Start Server Manually
+
+To run the app locally for development:
 
 ```bash
+# Terminal 1: Start Spring Boot Backend
 cd server
-docker compose up -d db redis
-```
+.\mvnw spring-boot:run # starts on port 5000
 
-### 4. Run the Backend
-
-```bash
-cd server
-.\run.ps1   # loads .env and starts on port 5000
-```
-
-Or manually:
-```bash
-cd server
-set SPRING_PROFILES_ACTIVE=dev
-.\mvnw spring-boot:run
-```
-
-### 5. Run the Frontend
-
-```bash
+# Terminal 2: Start Next.js Frontend
 cd client
-npm run dev    # starts on port 3000
+npm run dev # starts on port 3000
 ```
 
 Open **http://localhost:3000** and you're ready.
 
 ---
-
-## Using Docker (Full Stack)
-
-```bash
-cd server
-docker compose up -d   # starts PostgreSQL, Redis, and the app
-```
-
-Then start the frontend separately:
-```bash
-cd client && npm run dev
-```
 
 ---
 
@@ -201,20 +174,16 @@ See `server/API.md` for the complete reference with request/response examples.
 
 ```
 thadam-ai/
-├── client/                 # Next.js frontend
-│   ├── app/                # Pages + components
-│   ├── lib/                # API client, auth, theme, types
-│   └── public/
-├── server/                 # Spring Boot backend
-│   ├── src/main/
-│   │   ├── java/.../ai/    # Application code
-│   │   └── resources/      # Config, migrations, prompts
-│   ├── docker-compose.yml
-│   ├── Dockerfile
-│   ├── run.ps1
-│   └── pom.xml
-├── .gitignore
-└── README.md
+├── client/                 # Next.js frontend (Feature-Sliced Architecture)
+│   ├── src/                
+│   │   ├── app/            # App Router
+│   │   └── features/       # Feature modules
+├── server/                 # Spring Boot backend (Clean Architecture)
+│   ├── src/main/java/com/thadam/ai/modules/
+│   │   ├── auth/           
+│   │   ├── roadmap/        
+│   │   └── ...             
+├── README.md
 ```
 
 ---

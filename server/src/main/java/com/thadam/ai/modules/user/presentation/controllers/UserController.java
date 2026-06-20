@@ -42,9 +42,9 @@ public class UserController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<ApiResponse<UserResponse>> getUserById(@PathVariable Long id) {
+    public ResponseEntity<ApiResponse<UserResponse>> getUserById(@PathVariable String id) {
 
-        UserResponse fetchedUser = userService.getUserById(id);
+        UserResponse fetchedUser = userService.getUserByPublicId(id);
 
         return ResponseEntity.ok(
                 new ApiResponse<>(true, "User fetched successfully", fetchedUser));
@@ -69,7 +69,7 @@ public class UserController {
     @PutMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<ApiResponse<UserResponse>> updateUser(
-            @PathVariable Long id,
+            @PathVariable String id,
             @Valid @RequestBody UpdateUserRequest request) {
 
         UserResponse response = userService.updateUser(id, request);
@@ -80,7 +80,7 @@ public class UserController {
 
     @DeleteMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<ApiResponse<Object>> deleteUser(@PathVariable Long id) {
+    public ResponseEntity<ApiResponse<Object>> deleteUser(@PathVariable String id) {
 
         userService.deleteUser(id);
 

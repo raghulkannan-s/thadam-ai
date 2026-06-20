@@ -27,7 +27,7 @@ public class VoteController {
 
     @PostMapping
     public ResponseEntity<ApiResponse<VoteResponse>> vote(
-            @PathVariable Long roadmapId,
+            @PathVariable String roadmapId,
             @Valid @RequestBody VoteRequest request,
             @AuthenticationPrincipal User user) {
         VoteResponse response = voteService.vote(roadmapId, request, user);
@@ -36,7 +36,7 @@ public class VoteController {
 
     @GetMapping
     public ResponseEntity<ApiResponse<VoteResponse>> getUserVote(
-            @PathVariable Long roadmapId,
+            @PathVariable String roadmapId,
             @AuthenticationPrincipal User user) {
         VoteResponse response = voteService.getUserVote(roadmapId, user);
         return ResponseEntity.ok(ApiResponse.success(response));

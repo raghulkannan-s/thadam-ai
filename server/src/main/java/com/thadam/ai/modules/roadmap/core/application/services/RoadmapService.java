@@ -32,6 +32,10 @@ import com.thadam.ai.modules.roadmap.core.domain.entities.Roadmap;
 import com.thadam.ai.modules.roadmap.core.domain.entities.Task;
 import com.thadam.ai.modules.roadmap.core.domain.entities.Vote;
 import com.thadam.ai.modules.roadmap.core.domain.enums.VoteType;
+import com.thadam.ai.modules.roadmap.core.domain.enums.RoadmapVisibility;
+import com.thadam.ai.modules.roadmap.core.domain.enums.TaskStatus;
+import com.thadam.ai.modules.roadmap.core.domain.enums.TaskPriority;
+import com.thadam.ai.modules.roadmap.core.domain.enums.MilestoneStatus;
 import com.thadam.ai.modules.roadmap.infrastructure.repositories.MilestoneRepository;
 import com.thadam.ai.modules.roadmap.infrastructure.repositories.TaskRepository;
 import com.thadam.ai.modules.roadmap.infrastructure.repositories.VoteRepository;
@@ -58,6 +62,23 @@ public class RoadmapService {
     private final AuditService auditService;
     private final ApplicationEventPublisher eventPublisher;
 
+    @jakarta.annotation.PostConstruct
+    @Transactional
+    public void migratePublicIds() {
+        List<Roadmap> roadmaps = roadmapRepository.findAll();
+        boolean updated = false;
+        for (Roadmap r : roadmaps) {
+            if (r.getPublicId() == null) {
+                r.setPublicId(java.util.UUID.randomUUID().toString());
+                updated = true;
+            }
+        }
+        if (updated) {
+            roadmapRepository.saveAll(roadmaps);
+            log.info("Migrated existing roadmaps to have a publicId");
+        }
+    }
+
     @Transactional
     @CacheEvict(value = "roadmaps", allEntries = true)
     public RoadmapResponse createRoadmap(RoadmapRequest request, User user) {
@@ -70,58 +91,122 @@ public class RoadmapService {
         return toRoadmapResponse(saved);
     }
 
-    @Cacheable(value = "roadmaps", key = "#id")
-    public RoadmapResponse getRoadmapById(Long id) {
-        Roadmap roadmap = roadmapRepository.findById(id)
-                .orElseThrow(() -> new NotFoundException("Roadmap not found with id: " + id));
-        
-        // Normally we'd track who viewed it. Since we don't pass User to this method right now,
-        // we can just increment viewCount directly or we can pass a User object if we want to track streaks.
-        // For now, let's just increment viewCount here directly.
-        roadmap.setViewCount(roadmap.getViewCount() + 1);
-        roadmapRepository.save(roadmap);
+    // We remove @Cacheable here because the permission check depends on the user
+    public RoadmapResponse getRoadmapById(String publicId, User user) {
+        Roadmap roadmap = roadmapRepository.findByPublicId(publicId)
+                .orElseThrow(() -> new NotFoundException("Roadmap not found with id: " + publicId));
+
+        RoadmapVisibility vis = roadmap.getVisibility();
+        boolean isOwner = roadmap.getUser().getId().equals(user.getId());
+
+        if (!isOwner && (vis == RoadmapVisibility.DRAFT || vis == RoadmapVisibility.PRIVATE)) {
+            throw new ForbiddenException("You do not have permission to view this roadmap");
+        }
 
         return toRoadmapResponse(roadmap);
+    }
+
+    public CommunityRoadmapResponse getCommunityRoadmapById(String publicId, User user) {
+        Roadmap roadmap = roadmapRepository.findByPublicId(publicId)
+                .orElseThrow(() -> new NotFoundException("Roadmap not found with id: " + publicId));
+
+        RoadmapVisibility vis = roadmap.getVisibility();
+        boolean isOwner = (user != null) && roadmap.getUser().getId().equals(user.getId());
+
+        if (!isOwner && (vis == RoadmapVisibility.DRAFT || vis == RoadmapVisibility.PRIVATE)) {
+            throw new ForbiddenException("You do not have permission to view this roadmap");
+        }
+
+        List<Long> roadmapIds = List.of(roadmap.getId());
+        java.util.Map<Long, Long> upvotesMap = listToMap(voteRepository.countVotesByRoadmapIdsAndType(roadmapIds, VoteType.UPVOTE));
+        java.util.Map<Long, Long> downvotesMap = listToMap(voteRepository.countVotesByRoadmapIdsAndType(roadmapIds, VoteType.DOWNVOTE));
+        java.util.Map<Long, Long> forksMap = listToMap(roadmapRepository.countForksByRoadmapIdIn(roadmapIds));
+        java.util.Map<Long, Long> msMap = listToMap(milestoneRepository.countByRoadmapIdIn(roadmapIds));
+        java.util.Map<Long, Long> tasksMap = listToMap(taskRepository.countByRoadmapIdIn(roadmapIds));
+        
+        Vote userVote = null;
+        if (user != null) {
+            List<Vote> votes = voteRepository.findByUserIdAndRoadmapIdIn(user.getId(), roadmapIds);
+            if (!votes.isEmpty()) {
+                userVote = votes.get(0);
+            }
+        }
+
+        long upvotes = upvotesMap.getOrDefault(roadmap.getId(), 0L);
+        long downvotes = downvotesMap.getOrDefault(roadmap.getId(), 0L);
+        int forkCount = forksMap.getOrDefault(roadmap.getId(), 0L).intValue();
+        long msCount = msMap.getOrDefault(roadmap.getId(), 0L);
+        long tCount = tasksMap.getOrDefault(roadmap.getId(), 0L);
+
+        return new CommunityRoadmapResponse(
+                roadmap.getPublicId(),
+                roadmap.getTitle(),
+                roadmap.getDescription(),
+                roadmap.getStatus(),
+                roadmap.getVisibility(),
+                roadmap.getUser().getPublicId(),
+                roadmap.getUser().getName(),
+                roadmap.getDifficulty(),
+                roadmap.getDurationWeeks(),
+                roadmap.getEstimatedHoursPerDay(),
+                roadmap.getStartDate(),
+                (int) msCount,
+                (int) tCount,
+                upvotes,
+                downvotes,
+                userVote != null ? userVote.getVoteType().name() : null,
+                roadmap.getForkedFrom() != null ? roadmap.getForkedFrom().getPublicId() : null,
+                forkCount,
+                roadmap.getCreatedAt(),
+                roadmap.getUpdatedAt());
     }
 
     public Page<RoadmapResponse> getRoadmapsByUser(Long userId, Pageable pageable) {
         return toRoadmapResponsePage(roadmapRepository.findByUserId(userId, pageable));
     }
 
-    public Page<RoadmapResponse> searchRoadmaps(String query, Pageable pageable) {
-        return toRoadmapResponsePage(roadmapRepository.searchByTitleOrDescription(query, pageable));
+    public Page<CommunityRoadmapResponse> searchRoadmaps(String query, Pageable pageable, User currentUser) {
+        return hydrateCommunityRoadmaps(roadmapRepository.searchByTitleOrDescription(query, pageable), currentUser);
     }
 
     @Transactional
-    @CacheEvict(value = "roadmaps", key = "#id")
-    public RoadmapResponse updateRoadmap(Long id, RoadmapUpdateRequest request, User user) {
-        Roadmap roadmap = roadmapRepository.findById(id)
-                .orElseThrow(() -> new NotFoundException("Roadmap not found with id: " + id));
+    @CacheEvict(value = "roadmaps", key = "#publicId")
+    public RoadmapResponse updateRoadmap(String publicId, RoadmapUpdateRequest request, User user) {
+        Roadmap roadmap = roadmapRepository.findByPublicId(publicId)
+                .orElseThrow(() -> new NotFoundException("Roadmap not found with id: " + publicId));
         assertOwnership(roadmap, user);
         roadmap.setTitle(request.title());
         roadmap.setDescription(request.description());
         if (request.status() != null) {
             roadmap.setStatus(request.status());
         }
+        if (request.visibility() != null) {
+            roadmap.setVisibility(request.visibility());
+        }
         Roadmap saved = roadmapRepository.save(roadmap);
         return toRoadmapResponse(saved);
     }
 
     @Transactional
-    @CacheEvict(value = "roadmaps", key = "#id")
-    public void deleteRoadmap(Long id, User user) {
-        Roadmap roadmap = roadmapRepository.findById(id)
-                .orElseThrow(() -> new NotFoundException("Roadmap not found with id: " + id));
+    public void incrementViewCount(String publicId) {
+        roadmapRepository.findByPublicId(publicId).ifPresent(r -> roadmapRepository.incrementViewCount(r.getId()));
+    }
+
+    @Transactional
+    @CacheEvict(value = "roadmaps", key = "#publicId")
+    public void deleteRoadmap(String publicId, User user) {
+        Roadmap roadmap = roadmapRepository.findByPublicId(publicId)
+                .orElseThrow(() -> new NotFoundException("Roadmap not found with id: " + publicId));
         assertOwnership(roadmap, user);
         log.info("ROADMAP_DELETED roadmapId={} title={} userId={} correlationId={}",
-                id, roadmap.getTitle(), user.getId(), MDC.get("correlationId"));
-        auditService.roadmapDeleted(id, user.getId());
+                roadmap.getId(), roadmap.getTitle(), user.getId(), MDC.get("correlationId"));
+        auditService.roadmapDeleted(roadmap.getId(), user.getId());
         roadmapRepository.delete(roadmap);
     }
 
     @Transactional
-    public MilestoneResponse createMilestone(Long roadmapId, MilestoneRequest request, User user) {
-        Roadmap roadmap = roadmapRepository.findById(roadmapId)
+    public MilestoneResponse createMilestone(String roadmapId, MilestoneRequest request, User user) {
+        Roadmap roadmap = roadmapRepository.findByPublicId(roadmapId)
                 .orElseThrow(() -> new NotFoundException("Roadmap not found with id: " + roadmapId));
         assertOwnership(roadmap, user);
         Milestone milestone = Milestone.builder()
@@ -165,8 +250,8 @@ public class RoadmapService {
 
     @Transactional
     @CacheEvict(value = "roadmaps", key = "#result.roadmapId()")
-    public TaskResponse createTask(Long roadmapId, TaskRequest request, User user) {
-        Roadmap roadmap = roadmapRepository.findById(roadmapId)
+    public TaskResponse createTask(String roadmapId, TaskRequest request, User user) {
+        Roadmap roadmap = roadmapRepository.findByPublicId(roadmapId)
                 .orElseThrow(() -> new NotFoundException("Roadmap not found with id: " + roadmapId));
         assertOwnership(roadmap, user);
         Milestone milestone = null;
@@ -187,7 +272,7 @@ public class RoadmapService {
                 .milestone(milestone)
                 .roadmap(roadmap)
                 .assignee(assignee)
-                .priority(request.priority() != null ? request.priority() : com.thadam.ai.modules.roadmap.core.domain.enums.TaskPriority.MEDIUM)
+                .priority(request.priority() != null ? request.priority() : TaskPriority.MEDIUM)
                 .orderIndex(request.orderIndex())
                 .dueDate(request.dueDate())
                 .build();
@@ -195,13 +280,17 @@ public class RoadmapService {
         return toTaskResponse(saved);
     }
 
-    public Page<TaskResponse> getTasksByRoadmap(Long roadmapId, Pageable pageable) {
-        return taskRepository.findByRoadmapId(roadmapId, pageable)
+    public Page<TaskResponse> getTasksByRoadmap(String roadmapId, Pageable pageable) {
+        Roadmap roadmap = roadmapRepository.findByPublicId(roadmapId)
+                .orElseThrow(() -> new NotFoundException("Roadmap not found with id: " + roadmapId));
+        return taskRepository.findByRoadmapId(roadmap.getId(), pageable)
                 .map(this::toTaskResponse);
     }
 
-    public List<MilestoneResponse> getMilestonesByRoadmap(Long roadmapId) {
-        return milestoneRepository.findByRoadmapIdOrderByOrderIndexAsc(roadmapId)
+    public List<MilestoneResponse> getMilestonesByRoadmap(String roadmapId) {
+        Roadmap roadmap = roadmapRepository.findByPublicId(roadmapId)
+                .orElseThrow(() -> new NotFoundException("Roadmap not found with id: " + roadmapId));
+        return milestoneRepository.findByRoadmapIdOrderByOrderIndexAsc(roadmap.getId())
                 .stream()
                 .map(this::toMilestoneResponse)
                 .toList();
@@ -223,9 +312,9 @@ public class RoadmapService {
         if (request.title() != null) task.setTitle(request.title());
         if (request.description() != null) task.setDescription(request.description());
         if (request.status() != null) {
-            com.thadam.ai.modules.roadmap.core.domain.enums.TaskStatus oldStatus = task.getStatus();
+            TaskStatus oldStatus = task.getStatus();
             task.setStatus(request.status());
-            if (oldStatus != com.thadam.ai.modules.roadmap.core.domain.enums.TaskStatus.DONE && request.status() == com.thadam.ai.modules.roadmap.core.domain.enums.TaskStatus.DONE) {
+            if (oldStatus != TaskStatus.DONE && request.status() == TaskStatus.DONE) {
                 eventPublisher.publishEvent(new TaskCompletedEvent(user.getId(), task.getId()));
             }
         }
@@ -246,6 +335,17 @@ public class RoadmapService {
         }
 
         Task saved = taskRepository.save(task);
+
+        if (saved.getMilestone() != null && saved.getStatus() == TaskStatus.DONE) {
+            long totalTasks = taskRepository.countByMilestoneId(saved.getMilestone().getId());
+            long completedTasks = taskRepository.countByMilestoneIdAndStatus(saved.getMilestone().getId(), TaskStatus.DONE);
+            if (totalTasks > 0 && totalTasks == completedTasks) {
+                Milestone m = saved.getMilestone();
+                m.setStatus(MilestoneStatus.COMPLETED);
+                milestoneRepository.save(m);
+            }
+        }
+
         return toTaskResponse(saved);
     }
 
@@ -259,22 +359,33 @@ public class RoadmapService {
     }
 
     @Transactional
-    public RoadmapResponse forkRoadmap(Long id, User user) {
-        Roadmap original = roadmapRepository.findById(id)
-                .orElseThrow(() -> new NotFoundException("Roadmap not found with id: " + id));
+    public RoadmapResponse forkRoadmap(String publicId, User user) {
+        Roadmap original = roadmapRepository.findByPublicId(publicId)
+                .orElseThrow(() -> new NotFoundException("Roadmap not found with id: " + publicId));
 
         log.info("ROADMAP_FORK_STARTED originalId={} userId={} correlationId={}",
-                id, user.getId(), MDC.get("correlationId"));
+                original.getId(), user.getId(), MDC.get("correlationId"));
+
+        if (original.getVisibility() != RoadmapVisibility.PUBLIC) {
+            throw new ForbiddenException("You can only fork PUBLIC roadmaps");
+        }
+
+        if (roadmapRepository.existsByForkedFromIdAndUserId(original.getId(), user.getId())) {
+            throw new ForbiddenException("You have already forked this roadmap");
+        }
 
         Roadmap fork = Roadmap.builder()
                 .title(original.getTitle() + " (forked)")
                 .description(original.getDescription())
                 .user(user)
+                .visibility(RoadmapVisibility.DRAFT) // Fork starts as draft
                 .forkedFrom(original)
                 .build();
         fork = roadmapRepository.save(fork);
 
-        List<Milestone> originalMilestones = milestoneRepository.findByRoadmapIdOrderByOrderIndexAsc(id);
+        List<Milestone> originalMilestones = milestoneRepository.findByRoadmapIdOrderByOrderIndexAsc(original.getId());
+        List<Task> allNewTasks = new ArrayList<>();
+        
         for (Milestone origMs : originalMilestones) {
             Milestone newMs = Milestone.builder()
                     .title(origMs.getTitle())
@@ -286,9 +397,8 @@ public class RoadmapService {
             newMs = milestoneRepository.save(newMs);
 
             List<Task> origTasks = taskRepository.findByMilestoneIdOrderByOrderIndexAsc(origMs.getId());
-            List<Task> newTasks = new ArrayList<>();
             for (Task origTask : origTasks) {
-                newTasks.add(Task.builder()
+                allNewTasks.add(Task.builder()
                         .title(origTask.getTitle())
                         .description(origTask.getDescription())
                         .milestone(newMs)
@@ -298,25 +408,24 @@ public class RoadmapService {
                         .dueDate(origTask.getDueDate())
                         .build());
             }
-            if (!newTasks.isEmpty()) {
-                taskRepository.saveAll(newTasks);
-            }
+        }
+        
+        if (!allNewTasks.isEmpty()) {
+            taskRepository.saveAll(allNewTasks);
         }
 
         log.info("ROADMAP_FORK_COMPLETED forkedId={} originalId={} userId={} correlationId={}",
-                fork.getId(), id, user.getId(), MDC.get("correlationId"));
-        auditService.communityAction("FORK", id, user.getId());
+                fork.getId(), original.getId(), user.getId(), MDC.get("correlationId"));
+        auditService.communityAction("FORK", original.getId(), user.getId());
 
         return toRoadmapResponse(fork);
     }
 
-    @Cacheable(value = "roadmaps", key = "'trending-' + #pageable.pageNumber + '-' + #pageable.pageSize")
     public Page<CommunityRoadmapResponse> getTrendingRoadmaps(Pageable pageable, User currentUser) {
         Page<Roadmap> page = roadmapRepository.findTrending(pageable);
         return hydrateCommunityRoadmaps(page, currentUser);
     }
 
-    @Cacheable(value = "roadmaps", key = "'newest-' + #pageable.pageNumber + '-' + #pageable.pageSize")
     public Page<CommunityRoadmapResponse> getNewestRoadmaps(Pageable pageable, User currentUser) {
         Page<Roadmap> page = roadmapRepository.findNewest(pageable);
         return hydrateCommunityRoadmaps(page, currentUser);
@@ -327,13 +436,20 @@ public class RoadmapService {
         List<Long> followingIds = followRepository.findFollowingIdsByFollowerId(currentUser.getId());
         if (followingIds.isEmpty()) return Page.empty(pageable);
 
-        Page<Roadmap> page = roadmapRepository.findByUserIdInAndVisibility(followingIds, "PUBLIC", pageable);
+        Page<Roadmap> page = roadmapRepository.findByUserIdInAndVisibility(followingIds, RoadmapVisibility.PUBLIC, pageable);
         return hydrateCommunityRoadmaps(page, currentUser);
     }
 
     public Page<CommunityRoadmapResponse> getRecommendedRoadmaps(Pageable pageable, User currentUser) {
         // Placeholder for an ML recommendation engine, falling back to trending for now
         return getTrendingRoadmaps(pageable, currentUser);
+    }
+
+    public Page<CommunityRoadmapResponse> getRoadmapsByUserId(String userId, Pageable pageable, User currentUser) {
+        User targetUser = userRepository.findByPublicId(userId)
+                .orElseThrow(() -> new NotFoundException("User not found with id: " + userId));
+        Page<Roadmap> page = roadmapRepository.findByUserIdAndVisibility(targetUser.getId(), RoadmapVisibility.PUBLIC, pageable);
+        return hydrateCommunityRoadmaps(page, currentUser);
     }
 
     private Page<CommunityRoadmapResponse> hydrateCommunityRoadmaps(Page<Roadmap> page, User currentUser) {
@@ -364,18 +480,23 @@ public class RoadmapService {
             long tCount = tasksMap.getOrDefault(roadmap.getId(), 0L);
 
             return new CommunityRoadmapResponse(
-                    roadmap.getId(),
+                    roadmap.getPublicId(),
                     roadmap.getTitle(),
                     roadmap.getDescription(),
                     roadmap.getStatus(),
-                    roadmap.getUser().getId(),
+                    roadmap.getVisibility(),
+                    roadmap.getUser().getPublicId(),
                     roadmap.getUser().getName(),
+                    roadmap.getDifficulty(),
+                    roadmap.getDurationWeeks(),
+                    roadmap.getEstimatedHoursPerDay(),
+                    roadmap.getStartDate(),
                     (int) msCount,
                     (int) tCount,
                     upvotes,
                     downvotes,
                     userVote != null ? userVote.getVoteType().name() : null,
-                    roadmap.getForkedFrom() != null ? roadmap.getForkedFrom().getId() : null,
+                    roadmap.getForkedFrom() != null ? roadmap.getForkedFrom().getPublicId() : null,
                     forkCount,
                     roadmap.getCreatedAt(),
                     roadmap.getUpdatedAt());
@@ -398,14 +519,19 @@ public class RoadmapService {
         java.util.Map<Long, Long> tasksMap = listToMap(taskRepository.countByRoadmapIdIn(roadmapIds));
         
         return page.map(roadmap -> new RoadmapResponse(
-                roadmap.getId(),
+                roadmap.getPublicId(),
                 roadmap.getTitle(),
                 roadmap.getDescription(),
                 roadmap.getStatus(),
-                roadmap.getUser().getId(),
+                roadmap.getVisibility(),
+                roadmap.getUser().getPublicId(),
+                roadmap.getDifficulty(),
+                roadmap.getDurationWeeks(),
+                roadmap.getEstimatedHoursPerDay(),
+                roadmap.getStartDate(),
                 msMap.getOrDefault(roadmap.getId(), 0L).intValue(),
                 tasksMap.getOrDefault(roadmap.getId(), 0L).intValue(),
-                roadmap.getForkedFrom() != null ? roadmap.getForkedFrom().getId() : null,
+                roadmap.getForkedFrom() != null ? roadmap.getForkedFrom().getPublicId() : null,
                 roadmap.getCreatedAt(),
                 roadmap.getUpdatedAt()));
     }
@@ -420,14 +546,19 @@ public class RoadmapService {
         long milestoneCount = milestoneRepository.countByRoadmapId(roadmap.getId());
         long taskCount = taskRepository.countByRoadmapId(roadmap.getId());
         return new RoadmapResponse(
-                roadmap.getId(),
+                roadmap.getPublicId(),
                 roadmap.getTitle(),
                 roadmap.getDescription(),
                 roadmap.getStatus(),
-                roadmap.getUser().getId(),
+                roadmap.getVisibility(),
+                roadmap.getUser().getPublicId(),
+                roadmap.getDifficulty(),
+                roadmap.getDurationWeeks(),
+                roadmap.getEstimatedHoursPerDay(),
+                roadmap.getStartDate(),
                 (int) milestoneCount,
                 (int) taskCount,
-                roadmap.getForkedFrom() != null ? roadmap.getForkedFrom().getId() : null,
+                roadmap.getForkedFrom() != null ? roadmap.getForkedFrom().getPublicId() : null,
                 roadmap.getCreatedAt(),
                 roadmap.getUpdatedAt());
     }
@@ -438,7 +569,7 @@ public class RoadmapService {
                 milestone.getId(),
                 milestone.getTitle(),
                 milestone.getDescription(),
-                milestone.getRoadmap().getId(),
+                milestone.getRoadmap().getPublicId(),
                 milestone.getOrderIndex(),
                 milestone.getDueDate(),
                 milestone.getStatus(),
@@ -453,8 +584,8 @@ public class RoadmapService {
                 task.getTitle(),
                 task.getDescription(),
                 task.getMilestone() != null ? task.getMilestone().getId() : null,
-                task.getRoadmap().getId(),
-                task.getAssignee() != null ? task.getAssignee().getId() : null,
+                task.getRoadmap().getPublicId(),
+                task.getAssignee() != null ? task.getAssignee().getPublicId() : null,
                 task.getStatus(),
                 task.getPriority(),
                 task.getOrderIndex(),

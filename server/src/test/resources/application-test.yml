@@ -1,0 +1,29 @@
+spring:
+  datasource:
+    url: jdbc:h2:mem:testdb;DB_CLOSE_DELAY=-1
+    username: sa
+    password:
+    driver-class-name: org.h2.Driver
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: false
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.H2Dialect
+  flyway:
+    enabled: false
+
+jwt:
+  secret: test-secret-key-that-is-at-least-32-characters-long
+  expiration: 3600000
+  refresh-expiration: 604800000
+
+gemini:
+  api-key: test-key
+  api-version: v1beta
+  model: gemini-2.5-flash
+
+app:
+  oauth2:
+    frontend-redirect: http://localhost:3000/oauth2/redirect

@@ -1,10 +1,30 @@
+# Backend (Spring Boot)
+/server/target/
+/server/logs/
 /server/.env
-client/.env
 
-.github
-.vscode
+# Frontend (Next.js)
+/client/node_modules/
+/client/.next/
+/client/out/
+/client/build/
+/client/.env
+/client/.env.local
+/client/.env.development.local
+/client/.env.test.local
+/client/.env.production.local
 
-/server/target
-client/node_modules
+# IDE and OS Files
+.idea/
+.vscode/
+*.iml
+.DS_Store
+Thumbs.db
 
+# Temporary / AI Files
 /server/prompt.md
+personal.env
+audit.md
+prompts/
+
+TODO.md

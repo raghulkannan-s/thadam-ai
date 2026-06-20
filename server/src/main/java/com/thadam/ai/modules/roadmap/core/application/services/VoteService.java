@@ -14,6 +14,7 @@ import com.thadam.ai.modules.roadmap.core.application.dtos.VoteResponse;
 import com.thadam.ai.modules.roadmap.core.domain.entities.Roadmap;
 import com.thadam.ai.modules.roadmap.core.domain.entities.Vote;
 import com.thadam.ai.modules.roadmap.core.domain.enums.VoteType;
+import com.thadam.ai.modules.roadmap.core.domain.enums.RoadmapVisibility;
 import com.thadam.ai.modules.roadmap.infrastructure.repositories.RoadmapRepository;
 import com.thadam.ai.modules.roadmap.infrastructure.repositories.VoteRepository;
 
@@ -31,11 +32,19 @@ public class VoteService {
     private final AuditService auditService;
 
     @Transactional
-    public VoteResponse vote(Long roadmapId, VoteRequest request, User user) {
-        Roadmap roadmap = roadmapRepository.findById(roadmapId)
-                .orElseThrow(() -> new NotFoundException("Roadmap not found with id: " + roadmapId));
+    public VoteResponse vote(String publicId, VoteRequest request, User user) {
+        Roadmap roadmap = roadmapRepository.findByPublicId(publicId)
+                .orElseThrow(() -> new NotFoundException("Roadmap not found with id: " + publicId));
 
-        Vote existing = voteRepository.findByUserIdAndRoadmapId(user.getId(), roadmapId).orElse(null);
+        if (roadmap.getVisibility() != RoadmapVisibility.PUBLIC) {
+            throw new com.thadam.ai.common.exception.ForbiddenException("You can only vote on PUBLIC roadmaps");
+        }
+
+        if (roadmap.getUser().getId().equals(user.getId())) {
+            throw new com.thadam.ai.common.exception.ForbiddenException("You cannot vote on your own roadmap");
+        }
+
+        Vote existing = voteRepository.findByUserIdAndRoadmapId(user.getId(), roadmap.getId()).orElse(null);
 
         String action;
         if (existing != null) {
@@ -43,8 +52,9 @@ public class VoteService {
                 voteRepository.delete(existing);
                 action = "REMOVED_" + request.voteType();
                 log.info("VOTE_REMOVED userId={} roadmapId={} voteType={} correlationId={}",
-                        user.getId(), roadmapId, request.voteType(), MDC.get("correlationId"));
-                return buildResponse(null, roadmapId);
+                        user.getId(), roadmap.getId(), request.voteType(), MDC.get("correlationId"));
+                updateRoadmapScores(roadmap);
+                return buildResponse(null, roadmap.getId(), publicId);
             }
             existing.setVoteType(request.voteType());
             voteRepository.save(existing);
@@ -60,16 +70,32 @@ public class VoteService {
         }
 
         log.info("VOTE_CAST userId={} roadmapId={} action={} correlationId={}",
-                user.getId(), roadmapId, action, MDC.get("correlationId"));
-        auditService.communityAction(action, roadmapId, user.getId());
+                user.getId(), roadmap.getId(), action, MDC.get("correlationId"));
+        auditService.communityAction(action, roadmap.getId(), user.getId());
 
-        Vote updated = voteRepository.findByUserIdAndRoadmapId(user.getId(), roadmapId).orElse(null);
-        return buildResponse(updated, roadmapId);
+        updateRoadmapScores(roadmap);
+
+        Vote updated = voteRepository.findByUserIdAndRoadmapId(user.getId(), roadmap.getId()).orElse(null);
+        return buildResponse(updated, roadmap.getId(), publicId);
     }
 
-    public VoteResponse getUserVote(Long roadmapId, User user) {
-        Vote vote = voteRepository.findByUserIdAndRoadmapId(user.getId(), roadmapId).orElse(null);
-        return buildResponse(vote, roadmapId);
+    private void updateRoadmapScores(Roadmap roadmap) {
+        long upvotes = voteRepository.countByRoadmapIdAndVoteType(roadmap.getId(), VoteType.UPVOTE);
+        long downvotes = voteRepository.countByRoadmapIdAndVoteType(roadmap.getId(), VoteType.DOWNVOTE);
+        long voteScore = upvotes - downvotes;
+        roadmap.setVoteScore(voteScore);
+        
+        double popularityScore = roadmap.getViewCount() + (voteScore * 10.0) + (roadmap.getForkCount() * 5.0) + (roadmap.getCompletionCount() * 20.0);
+        roadmap.setPopularityScore(popularityScore);
+        
+        roadmapRepository.save(roadmap);
+    }
+
+    public VoteResponse getUserVote(String publicId, User user) {
+        Roadmap roadmap = roadmapRepository.findByPublicId(publicId)
+                .orElseThrow(() -> new NotFoundException("Roadmap not found with id: " + publicId));
+        Vote vote = voteRepository.findByUserIdAndRoadmapId(user.getId(), roadmap.getId()).orElse(null);
+        return buildResponse(vote, roadmap.getId(), publicId);
     }
 
     public long getUpvoteCount(Long roadmapId) {
@@ -80,13 +106,13 @@ public class VoteService {
         return voteRepository.countByRoadmapIdAndVoteType(roadmapId, VoteType.DOWNVOTE);
     }
 
-    private VoteResponse buildResponse(Vote vote, Long roadmapId) {
-        long upvotes = voteRepository.countByRoadmapIdAndVoteType(roadmapId, VoteType.UPVOTE);
-        long downvotes = voteRepository.countByRoadmapIdAndVoteType(roadmapId, VoteType.DOWNVOTE);
+    private VoteResponse buildResponse(Vote vote, Long internalId, String publicId) {
+        long upvotes = voteRepository.countByRoadmapIdAndVoteType(internalId, VoteType.UPVOTE);
+        long downvotes = voteRepository.countByRoadmapIdAndVoteType(internalId, VoteType.DOWNVOTE);
         return new VoteResponse(
                 vote != null ? vote.getId() : null,
-                vote != null ? vote.getUser().getId() : null,
-                roadmapId,
+                vote != null ? vote.getUser().getPublicId() : null,
+                publicId,
                 vote != null ? vote.getVoteType() : null,
                 upvotes,
                 downvotes);

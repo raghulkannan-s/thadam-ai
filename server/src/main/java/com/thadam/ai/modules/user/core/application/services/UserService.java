@@ -59,21 +59,23 @@ public class UserService {
                 performedBy != null ? performedBy : "system");
 
         return new CreateUserResponse(
-                savedUser.getId(),
+                savedUser.getPublicId(),
                 savedUser.getName(),
                 savedUser.getEmail());
     }
 
-    @Cacheable(value = "users", key = "#id")
-    public UserResponse getUserById(Long id) {
-        User user = userRepository.findById(id)
-                .orElseThrow(() -> new NotFoundException("User not found with this id : " + id));
+    @Cacheable(value = "users", key = "#publicId")
+    public UserResponse getUserByPublicId(String publicId) {
+        User user = userRepository.findByPublicId(publicId)
+                .orElseThrow(() -> new NotFoundException("User not found with this id : " + publicId));
 
         return new UserResponse(
-                user.getId(),
+                user.getPublicId(),
                 user.getName(),
                 user.getEmail(),
-                user.getRole());
+                user.getRole(),
+                user.getAvatarUrl(),
+                user.getCoins());
     }
 
     @Cacheable(value = "users", key = "'all'")
@@ -81,18 +83,20 @@ public class UserService {
         return userRepository.findAll()
                 .stream()
                 .map(user -> new UserResponse(
-                        user.getId(),
+                        user.getPublicId(),
                         user.getName(),
                         user.getEmail(),
-                        user.getRole()))
+                        user.getRole(),
+                        user.getAvatarUrl(),
+                        user.getCoins()))
                 .toList();
     }
 
     @Transactional
-    @CacheEvict(value = "users", key = "#id")
-    public UserResponse updateUser(Long id, UpdateUserRequest req) {
-        User user = userRepository.findById(id)
-                .orElseThrow(() -> new NotFoundException("User not found with this id : " + id));
+    @CacheEvict(value = "users", key = "#publicId")
+    public UserResponse updateUser(String publicId, UpdateUserRequest req) {
+        User user = userRepository.findByPublicId(publicId)
+                .orElseThrow(() -> new NotFoundException("User not found with this id : " + publicId));
 
         user.setName(req.name());
         user.setEmail(req.email());
@@ -100,34 +104,38 @@ public class UserService {
         User updatedUser = userRepository.save(user);
 
         return new UserResponse(
-                updatedUser.getId(),
+                updatedUser.getPublicId(),
                 updatedUser.getName(),
                 updatedUser.getEmail(),
-                updatedUser.getRole());
+                updatedUser.getRole(),
+                updatedUser.getAvatarUrl(),
+                updatedUser.getCoins());
     }
 
     public List<PublicUserResponse> getPublicUsers() {
         return userRepository.findAll()
                 .stream()
                 .map(user -> new PublicUserResponse(
-                        user.getId(),
+                        user.getPublicId(),
                         user.getName(),
                         user.getEmail(),
                         user.getRole().name(),
-                        roadmapRepository.countByUserId(user.getId())))
+                        roadmapRepository.countByUserId(user.getId()),
+                        user.getAvatarUrl(),
+                        user.getCoins()))
                 .toList();
     }
 
     @Transactional
-    @CacheEvict(value = "users", key = "#id")
-    public void deleteUser(Long id) {
-        User user = userRepository.findById(id)
-                .orElseThrow(() -> new NotFoundException("User not found with this id : " + id));
+    @CacheEvict(value = "users", key = "#publicId")
+    public void deleteUser(String publicId) {
+        User user = userRepository.findByPublicId(publicId)
+                .orElseThrow(() -> new NotFoundException("User not found with this id : " + publicId));
 
         String performedBy = MDC.get("userId");
-        log.info("USER_DELETED targetUserId={} email={} performedBy={} correlationId={}",
-                id, user.getEmail(), performedBy, MDC.get("correlationId"));
-        auditService.userDeleted(id, performedBy != null ? performedBy : "system");
+        log.info("USER_DELETED targetUserPublicId={} email={} performedBy={} correlationId={}",
+                publicId, user.getEmail(), performedBy, MDC.get("correlationId"));
+        auditService.userDeleted(user.getId(), performedBy != null ? performedBy : "system");
 
         userRepository.delete(user);
     }
