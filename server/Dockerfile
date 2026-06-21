@@ -7,6 +7,6 @@ COPY . .
 RUN chmod +x mvnw
 RUN ./mvnw clean package -DskipTests
 
-EXPOSE 8080
+EXPOSE 5000
 
-CMD ["sh","-c","java -jar target/*.jar"]
+CMD ["sh", "-c", "java -jar target/*.jar"]
