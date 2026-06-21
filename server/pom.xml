@@ -9,9 +9,9 @@
 		<relativePath/> <!-- lookup parent from repository -->
 	</parent>
 	<groupId>com.thadam</groupId>
-	<artifactId>ai</artifactId>
-	<version>0.0.1-SNAPSHOT</version>
-	<name>ai</name>
+	<artifactId>thadam_ai</artifactId>
+	<version>1.0.0</version>
+	<name>Thadam AI</name>
 	<description/>
 	<url/>
 	<licenses>
