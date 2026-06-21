@@ -28,7 +28,7 @@ const nextConfig: NextConfig = {
   // @ts-ignore: Next.js 15+ dynamic property for local network testing
   allowedDevOrigins: ['10.52.0.36'],
   experimental: {
-    optimizePackageImports: ["lucide-react"],
+    optimizePackageImports: ["lucide-react", "three", "@react-three/drei"],
   },
 };
 
