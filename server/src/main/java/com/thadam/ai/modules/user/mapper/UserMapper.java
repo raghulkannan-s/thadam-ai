@@ -1,4 +1,4 @@
-package com.thadam.ai.user.mapper;
+package com.thadam.ai.modules.user.mapper;
 
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;

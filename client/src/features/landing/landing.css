@@ -1,0 +1,274 @@
+/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   Thadam AI — Landing Page Styles (Top-Down Minimalist)
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+
+/* ─── Landing Design Tokens ─── */
+:root,
+[data-theme="light"] {
+  --landing-bg: #FFFFFF;
+  --landing-text-hero: #111827;
+  --landing-text-sub: #4B5563;
+  --landing-card-bg: rgba(255, 255, 255, 0.8);
+  --landing-card-border: rgba(229, 231, 235, 0.8);
+  --landing-card-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+  --path-bg: rgba(229, 231, 235, 0.6);
+  --path-fill: #3B82F6;
+  --aircraft-fill: #FFFFFF;
+  --aircraft-stroke: #2563EB;
+  --landing-divider: rgba(229, 231, 235, 0.8);
+  --cta-bg: #111827;
+  --cta-text: #FFFFFF;
+  --cta-hover-bg: #1F2937;
+  --cta-sec-bg: transparent;
+  --cta-sec-border: #E5E7EB;
+  --cta-sec-text: #111827;
+}
+
+[data-theme="dark"] {
+  --landing-bg: #0F1115; /* Deep slate, like Linear */
+  --landing-text-hero: #F9FAFB;
+  --landing-text-sub: #9CA3AF;
+  --landing-card-bg: rgba(23, 25, 30, 0.6);
+  --landing-card-border: rgba(255, 255, 255, 0.08);
+  --landing-card-shadow: 0 8px 30px rgba(0, 0, 0, 0.3);
+  --path-bg: rgba(255, 255, 255, 0.1);
+  --path-fill: #3B82F6;
+  --aircraft-fill: #FFFFFF;
+  --aircraft-stroke: #3B82F6;
+  --landing-divider: rgba(255, 255, 255, 0.08);
+  --cta-bg: #F9FAFB;
+  --cta-text: #111827;
+  --cta-hover-bg: #E5E7EB;
+  --cta-sec-bg: transparent;
+  --cta-sec-border: rgba(255, 255, 255, 0.15);
+  --cta-sec-text: #F9FAFB;
+}
+
+body {
+  background-color: var(--landing-bg);
+}
+
+/* ─── Layout ─── */
+.landing-page {
+  position: relative;
+  width: 100%;
+  height: 100vh;
+  color: var(--landing-text-hero);
+  font-family: var(--font-sans), system-ui, sans-serif;
+  overflow-x: hidden;
+  overflow-y: scroll;
+  scroll-snap-type: y mandatory;
+  scroll-behavior: smooth;
+  /* Hide scrollbar for clean app feel */
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+.landing-page::-webkit-scrollbar {
+  display: none;
+}
+
+/* ─── Header ─── */
+.landing-nav {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  z-index: 100;
+  transition: all 0.3s ease;
+  padding: 24px clamp(24px, 10vw, 120px);
+}
+
+.landing-nav--scrolled {
+  padding: 16px clamp(24px, 10vw, 120px);
+  background: var(--landing-card-bg);
+  border-bottom: 1px solid var(--landing-card-border);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+}
+
+.landing-nav__inner {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+}
+
+.landing-section {
+  position: relative;
+  width: 100%;
+  height: 100vh;
+  scroll-snap-align: start;
+  scroll-snap-stop: always;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 80px 24px;
+  z-index: 10;
+}
+
+/* ─── Typography ─── */
+.section-label {
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--path-fill);
+  margin-bottom: 16px;
+}
+
+.section-title {
+  font-size: clamp(2rem, 4vw, 3.5rem);
+  font-weight: 700;
+  line-height: 1.1;
+  letter-spacing: -0.04em;
+  color: var(--landing-text-hero);
+  margin-bottom: 24px;
+}
+
+.section-description {
+  font-size: clamp(1rem, 1.5vw, 1.25rem);
+  line-height: 1.6;
+  color: var(--landing-text-sub);
+  max-width: 500px;
+}
+
+/* ─── Minimal Glass Cards ─── */
+.glass-card {
+  background: var(--landing-card-bg);
+  border: 1px solid var(--landing-card-border);
+  border-radius: 12px;
+  box-shadow: var(--landing-card-shadow);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  padding: 24px;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+/* ─── CTA Buttons ─── */
+.cta-primary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 12px 28px;
+  background: var(--cta-bg);
+  color: var(--cta-text);
+  font-weight: 500;
+  font-size: 0.9375rem;
+  border-radius: 8px;
+  text-decoration: none;
+  transition: background 0.2s ease, transform 0.2s ease;
+}
+
+.cta-primary:hover {
+  background: var(--cta-hover-bg);
+  transform: translateY(-1px);
+}
+
+.cta-secondary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 12px 28px;
+  background: var(--cta-sec-bg);
+  color: var(--cta-sec-text);
+  font-weight: 500;
+  font-size: 0.9375rem;
+  border: 1px solid var(--cta-sec-border);
+  border-radius: 8px;
+  text-decoration: none;
+  transition: background 0.2s ease, border-color 0.2s ease;
+}
+
+.cta-secondary:hover {
+  background: rgba(255, 255, 255, 0.05);
+  border-color: var(--landing-text-sub);
+}
+
+/* ─── Hero Section ─── */
+.hero-headline {
+  font-size: clamp(2.5rem, 6vw, 5rem);
+  font-weight: 800;
+  line-height: 1.05;
+  letter-spacing: -0.05em;
+  text-align: center;
+  max-width: 900px;
+}
+
+.hero-subheadline {
+  font-size: clamp(1.125rem, 2vw, 1.5rem);
+  color: var(--landing-text-sub);
+  text-align: center;
+  max-width: 600px;
+  margin-top: 24px;
+  line-height: 1.5;
+}
+
+/* ─── Animations ─── */
+.fade-in-up {
+  animation: fadeInUp 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* ─── Specific layout utilities ─── */
+.split-section {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 80px;
+  align-items: center;
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.split-section--reversed .split-text {
+  order: 2;
+}
+
+.split-section--reversed .split-visual {
+  order: 1;
+}
+
+@media (max-width: 900px) {
+  .split-section {
+    grid-template-columns: 1fr;
+    gap: 40px;
+    text-align: center;
+  }
+  .split-section .section-description {
+    margin-left: auto;
+    margin-right: auto;
+  }
+  .split-section--reversed .split-text {
+    order: 1;
+  }
+  .split-section--reversed .split-visual {
+    order: 2;
+  }
+  .split-visual {
+    display: flex;
+    justify-content: center;
+  }
+}
+
+.takeoff-active .text-content,
+.takeoff-active .section-label,
+.takeoff-active .section-title,
+.takeoff-active .section-description,
+.takeoff-active footer,
+.takeoff-active .cta-primary {
+  opacity: 0 !important;
+  transition: opacity 0.5s ease !important;
+  pointer-events: none;
+}

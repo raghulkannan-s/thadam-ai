@@ -215,18 +215,18 @@ export default function RoadmapContentPage({ params }: { params: Promise<{ id: s
              <div className="flex items-center gap-1.5"><GitFork className="h-4 w-4" /> {roadmap.forkedFromId ? 'Forked' : 'Original'}</div>
           </div>
           <div className="flex items-center gap-3">
-             <Button variant="ghost" size="default" onClick={() => handleVote("UPVOTE")} disabled={isVoting} className={roadmap.userVote === 'UPVOTE' ? 'text-green-600 bg-green-500/20 font-semibold ring-1 ring-green-500/50' : 'hover:text-green-600 hover:bg-green-500/10'}>
+             <Button variant="ghost" size="md" onClick={() => handleVote("UPVOTE")} disabled={isVoting} className={roadmap.userVote === 'UPVOTE' ? 'text-green-600 bg-green-500/20 font-semibold ring-1 ring-green-500/50' : 'hover:text-green-600 hover:bg-green-500/10'}>
                <ArrowUpCircle className="mr-2 h-5 w-5" strokeWidth={roadmap.userVote === 'UPVOTE' ? 2.5 : 2} /> 
                {roadmap.upvoteCount > 0 ? roadmap.upvoteCount : 'Upvote'}
              </Button>
-             <Button variant="ghost" size="default" onClick={() => handleVote("DOWNVOTE")} disabled={isVoting} className={roadmap.userVote === 'DOWNVOTE' ? 'text-red-600 bg-red-500/20 font-semibold ring-1 ring-red-500/50' : 'hover:text-red-600 hover:bg-red-500/10'}>
+             <Button variant="ghost" size="md" onClick={() => handleVote("DOWNVOTE")} disabled={isVoting} className={roadmap.userVote === 'DOWNVOTE' ? 'text-red-600 bg-red-500/20 font-semibold ring-1 ring-red-500/50' : 'hover:text-red-600 hover:bg-red-500/10'}>
                <ArrowUpCircle className="mr-2 h-5 w-5 rotate-180" strokeWidth={roadmap.userVote === 'DOWNVOTE' ? 2.5 : 2} /> 
                {roadmap.downvoteCount > 0 ? roadmap.downvoteCount : 'Downvote'}
              </Button>
-             <Button variant="ghost" size="default" onClick={handleShare}>
+             <Button variant="ghost" size="md" onClick={handleShare}>
                <Share2 className="mr-2 h-5 w-5" /> Share
              </Button>
-             <Button variant="outline" size="default" onClick={handleFork} disabled={isForking}>
+             <Button variant="outline" size="md" onClick={handleFork} disabled={isForking}>
                <GitFork className="mr-2 h-5 w-5" /> Fork {roadmap.forkCount > 0 && `(${roadmap.forkCount})`}
              </Button>
           </div>

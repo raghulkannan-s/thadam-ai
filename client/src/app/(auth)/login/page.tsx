@@ -7,7 +7,7 @@ import { Spinner } from "@/shared/ui/LoadingSpinner";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { sanitizeRedirectPath } from "@/features/auth/context/auth-redirect";
-import { Mail, Lock, Eye, EyeOff, Sparkles, ArrowRight } from "lucide-react";
+import { Mail, Lock, Eye, EyeOff, Sparkles, ArrowRight, ArrowLeft } from "lucide-react";
 import { Button } from "@/shared/ui/Button";
 
 const GOOGLE_OAUTH_URL = `${process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:5000"}/oauth2/authorization/google`;
@@ -100,9 +100,15 @@ export default function LoginPage() {
       </div>
 
       {/* Right Panel - Form */}
-      <div className="flex w-full lg:w-1/2 items-center justify-center p-8 sm:p-12 relative z-10 bg-[var(--bg-base)]">
-        <div className="w-full max-w-md animate-slide-up">
-          <div className="text-center mb-10 lg:text-left">
+      <div className="flex w-full lg:w-1/2 items-center justify-center p-6 sm:p-10 relative z-10 bg-[var(--bg-base)]">
+        {/* Back to Home Button */}
+        <Link href="/" className="absolute top-6 left-6 flex items-center text-sm font-semibold text-[var(--text-tertiary)] hover:text-[var(--text-primary)] transition-colors">
+          <ArrowLeft className="w-4 h-4 mr-2" />
+          Back to Home
+        </Link>
+        
+        <div className="w-full max-w-md animate-slide-up mt-8">
+          <div className="text-center mb-8 lg:text-left">
             <h1 className="text-3xl font-black tracking-tight text-[var(--text-primary)] mb-3">
               Welcome back
             </h1>
@@ -122,7 +128,7 @@ export default function LoginPage() {
             </div>
           )}
 
-          <form onSubmit={onSubmit} className="space-y-5">
+          <form onSubmit={onSubmit} className="space-y-4">
             <div className="space-y-2">
               <label className="text-sm font-bold text-[var(--text-primary)]" htmlFor="login-email">Email Address</label>
               <div className="relative group">
@@ -132,7 +138,7 @@ export default function LoginPage() {
                 <input
                   id="login-email"
                   type="email"
-                  className="w-full bg-[var(--bg-surface)] border border-[var(--border-subtle)] text-[var(--text-primary)] rounded-xl py-3.5 pl-12 pr-4 focus:ring-2 focus:ring-[var(--accent-primary)]/20 focus:border-[var(--accent-primary)] transition-all outline-none font-medium placeholder-[var(--text-tertiary)] shadow-sm"
+                  className="w-full bg-[var(--bg-surface)] border border-[var(--border-subtle)] text-[var(--text-primary)] rounded-xl py-3 pl-12 pr-4 focus:ring-2 focus:ring-[var(--accent-primary)]/20 focus:border-[var(--accent-primary)] transition-all outline-none font-medium placeholder-[var(--text-tertiary)] shadow-sm"
                   placeholder="name@example.com"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
@@ -156,7 +162,7 @@ export default function LoginPage() {
                 <input
                   id="login-password"
                   type={showPassword ? "text" : "password"}
-                  className="w-full bg-[var(--bg-surface)] border border-[var(--border-subtle)] text-[var(--text-primary)] rounded-xl py-3.5 pl-12 pr-12 focus:ring-2 focus:ring-[var(--accent-primary)]/20 focus:border-[var(--accent-primary)] transition-all outline-none font-medium placeholder-[var(--text-tertiary)] shadow-sm"
+                  className="w-full bg-[var(--bg-surface)] border border-[var(--border-subtle)] text-[var(--text-primary)] rounded-xl py-3 pl-12 pr-12 focus:ring-2 focus:ring-[var(--accent-primary)]/20 focus:border-[var(--accent-primary)] transition-all outline-none font-medium placeholder-[var(--text-tertiary)] shadow-sm"
                   placeholder="Enter your password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
@@ -177,7 +183,7 @@ export default function LoginPage() {
             <Button
               type="submit"
               variant="primary"
-              className="w-full h-14 text-base font-bold mt-2 shadow-lg shadow-[var(--accent-primary)]/20 hover:shadow-[var(--accent-primary)]/30 group"
+              className="w-full h-12 text-base font-bold mt-2 shadow-lg shadow-[var(--accent-primary)]/20 hover:shadow-[var(--accent-primary)]/30 group"
               disabled={loading}
             >
               {loading ? (
@@ -197,19 +203,19 @@ export default function LoginPage() {
             </div>
           </div>
 
-          <div className="mt-8">
+          <div className="mt-6">
             <Button
               onClick={handleOAuth}
               disabled={oauthLoading}
               variant="outline"
-              className="w-full h-14 text-base font-bold border-[var(--border-subtle)] hover:bg-[var(--bg-surface)] hover:border-[var(--text-tertiary)] text-[var(--text-primary)] transition-all"
+              className="w-full h-12 text-base font-bold border-[var(--border-subtle)] hover:bg-[var(--bg-surface)] hover:border-[var(--text-tertiary)] text-[var(--text-primary)] transition-all"
             >
               {oauthLoading ? <Spinner size={20} className="mr-2" /> : <GoogleIcon />}
               Google
             </Button>
           </div>
 
-          <p className="mt-10 text-center text-[var(--text-secondary)] font-medium">
+          <p className="mt-6 text-center text-[var(--text-secondary)] font-medium">
             Don&apos;t have an account?{" "}
             <Link href={`/register?redirect=${encodeURIComponent(redirectTarget)}`} className="text-[var(--accent-primary)] font-bold hover:underline transition-colors">
               Sign up for free
