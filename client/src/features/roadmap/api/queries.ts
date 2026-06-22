@@ -44,6 +44,17 @@ export function useCreatorRoadmaps(userId: string) {
   });
 }
 
+export function useCreatorProfile(userId: string) {
+  return useQuery({
+    queryKey: ["user", userId],
+    queryFn: async () => {
+      const res = await apiFetch<{ id: string, name: string, username?: string, email?: string }>(`/api/user/${userId}`);
+      return res.data;
+    },
+    enabled: !!userId,
+  });
+}
+
 export function useRoadmap(id: string) {
   return useQuery({
     queryKey: ["roadmaps", id],

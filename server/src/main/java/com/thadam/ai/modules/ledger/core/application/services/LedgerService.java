@@ -96,8 +96,8 @@ public class LedgerService {
     }
 
     private int getCurrentBalance(Long userId) {
-        return coinTransactionRepository.findTopByUserIdOrderByCreatedAtDesc(userId)
-                .map(CoinTransaction::getBalanceAfter)
+        return userRepository.findById(userId)
+                .map(User::getCoins)
                 .orElse(0);
     }
 

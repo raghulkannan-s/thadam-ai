@@ -32,6 +32,7 @@ function RealJet({ bankAngle, pitchAngle, takingOff, scrollYProgress }: { bankAn
   const groupRef = useRef<THREE.Group>(null);
   const { scene } = useGLTF("/models/jet.glb");
   const takeoffProgress = useRef(0);
+  const initialTakeoffScale = useRef<number | null>(null);
 
   // Traverse the scene to ensure premium materials
   useEffect(() => {
@@ -58,49 +59,54 @@ function RealJet({ bankAngle, pitchAngle, takingOff, scrollYProgress }: { bankAn
   useFrame((state, delta) => {
     if (groupRef.current) {
       if (takingOff) {
-        // Slower 3.5s takeoff sequence to allow user to see the full flight
+        if (initialTakeoffScale.current === null) {
+          initialTakeoffScale.current = groupRef.current.scale.x;
+        }
+
+        // Slower 3.0s takeoff sequence to show the full flight gracefully but faster
         takeoffProgress.current += delta;
-        const t = Math.min(takeoffProgress.current * (1 / 3.5), 1); // 0 to 1
+        const t = Math.min(takeoffProgress.current * (1 / 3.0), 1); // 0 to 1
         
-        // 1. Scale: Continuously grows from 5 to 35
-        const easeScale = t === 1 ? 1 : 1 - Math.pow(2, -10 * t);
-        groupRef.current.scale.setScalar(THREE.MathUtils.lerp(5.0, 35.0, easeScale));
+        // 1. Scale: Smoothly grow from EXACTLY its current size when the button was clicked
+        const easeScale = t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2; // Smooth ease in out
+        const startScale = initialTakeoffScale.current;
+        groupRef.current.scale.setScalar(THREE.MathUtils.lerp(startScale, 12.0, easeScale));
         
-        // 2. Z/Y position: moves towards camera to go "through" the screen at the end
-        // Camera is at [0, -10, 8]
-        groupRef.current.position.z = THREE.MathUtils.lerp(0, 8.5, t * t);
-        groupRef.current.position.y = THREE.MathUtils.lerp(0, -10, t * t);
+        // 2. Z/Y position: Stay comfortably in view rather than crashing into the camera
+        groupRef.current.position.z = THREE.MathUtils.lerp(0, 2.0, easeScale);
+        groupRef.current.position.y = THREE.MathUtils.lerp(0, -4.0, easeScale);
         
         // 3. X position (The Sweep):
         
         let targetX = 0;
-        let bankZ = 0;
-        let pitchX = -Math.PI / 2; // Flat pitch
-        let yawY = 0;
+        let bankZ = 0; // This controls YAW (nose left/right)
+        let pitchX = 0; // Flat pitch (0 = parallel to ground)
+        let yawY = 0; // This controls ROLL (banking into turns)
 
         if (t < 0.4) {
-          // Fly Left: Point nose Left
+          // Fly Left: Point nose Left (-X) - Slower flight out
           const localT = t / 0.4;
-          const easeOut = 1 - Math.pow(1 - localT, 3);
-          targetX = THREE.MathUtils.lerp(0, -25, easeOut);
-          bankZ = THREE.MathUtils.lerp(0, Math.PI / 4, easeOut);
-          yawY = THREE.MathUtils.lerp(0, Math.PI / 2, easeOut); // Steer nose exactly left
-        } else if (t < 0.7) {
-          // U-Turn / Sweep back right: Swing nose from Left to Right
-          const localT = (t - 0.4) / 0.3;
+          // Use easeInOut so it starts SLOWLY from zero velocity instead of jumping
+          const smoothStart = localT < 0.5 ? 2 * localT * localT : 1 - Math.pow(-2 * localT + 2, 2) / 2;
+          targetX = THREE.MathUtils.lerp(0, -25, smoothStart); // Fly much further left
+          bankZ = THREE.MathUtils.lerp(0, -Math.PI / 2, smoothStart); // Yaw from -Y to -X
+          yawY = THREE.MathUtils.lerp(0, Math.PI / 8, smoothStart); // Roll into the turn
+        } else if (t < 0.55) {
+          // U-Turn: Quickly swing nose from Left (-X) to Right (+X) further off screen - FAST return
+          const localT = (t - 0.4) / 0.15;
           const easeInOut = localT < 0.5 ? 2 * localT * localT : 1 - Math.pow(-2 * localT + 2, 2) / 2;
-          targetX = THREE.MathUtils.lerp(-25, 10, easeInOut);
+          targetX = THREE.MathUtils.lerp(-25, -10, easeInOut); // Keep the U-turn heavily on the left side
           
-          bankZ = THREE.MathUtils.lerp(Math.PI / 4, -Math.PI / 4, easeInOut);
-          yawY = THREE.MathUtils.lerp(Math.PI / 2, -Math.PI / 2, easeInOut); // Sweep nose from left to right
+          bankZ = THREE.MathUtils.lerp(-Math.PI / 2, Math.PI / 2, easeInOut); // Sweep nose Left to Right
+          yawY = THREE.MathUtils.lerp(Math.PI / 8, -Math.PI / 8, easeInOut); // Roll sweep
         } else {
-          // Go through screen on the right: Keep pointing right
-          const localT = (t - 0.7) / 0.3;
-          const easeIn = localT * localT * localT;
-          targetX = THREE.MathUtils.lerp(10, 40, easeIn);
+          // Fly away: Slowly and majestically cross the full screen from left to right
+          const localT = (t - 0.55) / 0.45;
+          // Linear movement looks better for a long flyaway than aggressive easing
+          targetX = THREE.MathUtils.lerp(-10, 40, localT); // extended right flight
           
-          bankZ = -Math.PI / 4;
-          yawY = -Math.PI / 2; // Nose stays pointing right
+          bankZ = Math.PI / 2; // Nose stays pointing precisely RIGHT (+X)
+          yawY = THREE.MathUtils.lerp(-Math.PI / 8, 0, localT); // Level out the roll as it flies away
         }
         
         groupRef.current.position.x = targetX;
@@ -159,7 +165,7 @@ function JourneyScene({ scrollYProgress, takingOff }: { scrollYProgress: any, ta
     }
   });
 
-  const nodes = 7;
+  const nodes = 4;
   const distance = 200;
   const step = distance / (nodes - 1);
 

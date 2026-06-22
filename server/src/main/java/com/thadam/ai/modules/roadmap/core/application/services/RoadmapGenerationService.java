@@ -56,12 +56,12 @@ public class RoadmapGenerationService {
 
         try {
             long currentBalance = ledgerService.getBalance(user.getId()).balance();
-            if (currentBalance < 50) {
-                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Insufficient coins. Generating a roadmap requires 50 coins.");
+            if (currentBalance < 10) {
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Insufficient coins. Generating a roadmap requires 10 coins.");
             }
 
             ledgerService.addTransaction(user, new CoinTransactionRequest(
-                    50,
+                    10,
                     TransactionType.SPENT,
                     "AI Roadmap Generation",
                     "ROADMAP_GENERATION",
@@ -114,7 +114,7 @@ public class RoadmapGenerationService {
         } catch (Exception e) {
             try {
                 ledgerService.addTransaction(user, new CoinTransactionRequest(
-                        50,
+                        10,
                         TransactionType.REFUND,
                         "Refund for failed AI Roadmap Generation",
                         "ROADMAP_GENERATION",

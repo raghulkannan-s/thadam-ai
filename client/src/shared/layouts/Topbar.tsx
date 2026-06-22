@@ -9,6 +9,7 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { toast } from 'sonner';
 import { useQueryClient } from '@tanstack/react-query';
+import { ThemeToggle } from '@/shared/theme/ThemeToggle';
 
 export function Topbar({ onMenuClick, onDesktopMenuClick }: { onMenuClick?: () => void; onDesktopMenuClick?: () => void }) {
   const { user, logout } = useAuth();
@@ -92,6 +93,8 @@ export function Topbar({ onMenuClick, onDesktopMenuClick }: { onMenuClick?: () =
 
       {/* Right Actions */}
       <div className="flex items-center space-x-4">
+        
+        <ThemeToggle />
 
         {/* Coin Balance */}
         <div className="flex items-center bg-[var(--warning)]/10 text-[var(--warning)] border border-[var(--warning)]/20 px-3 py-1.5 rounded-full font-bold text-sm tracking-tight" title="Your Coin Balance">

@@ -1,5 +1,7 @@
 'use client';
 
+import { use } from 'react';
+
 import { GitFork, ArrowUpCircle, Compass, ArrowLeft, Clock } from 'lucide-react';
 import { Card, CardContent } from '@/shared/ui/Card';
 import { Avatar } from '@/shared/ui/Avatar';
@@ -9,18 +11,19 @@ import { CommunityRoadmapResponse } from '@/lib/types';
 
 import Link from 'next/link';
 
-import { useCreatorRoadmaps } from '@/features/roadmap/api/queries';
+import { useCreatorRoadmaps, useCreatorProfile } from '@/features/roadmap/api/queries';
 import { RoadmapCardSkeleton } from '@/shared/ui/Skeleton';
 import { CommunityRoadmapCard } from '@/features/community/components/CommunityRoadmapCard';
 
-export default function CreatorProfilePage({ params }: { params: { id: string } }) {
-  const userId = params.id;
+export default function CreatorProfilePage({ params }: { params: Promise<{ id: string }> }) {
+  const resolvedParams = use(params);
+  const userId = resolvedParams.id;
   const { data, isLoading, isError } = useCreatorRoadmaps(userId);
+  const { data: profile } = useCreatorProfile(userId);
 
   const roadmaps = data?.content || [];
   
-  // We can derive username from the first roadmap if it exists, or just show "Creator"
-  const username = roadmaps.length > 0 ? roadmaps[0].userName : `User ${userId}`;
+  const username = profile?.name || (roadmaps.length > 0 ? roadmaps[0].userName : `User ${userId.substring(0, 8)}...`);
 
   return (
     <div className="mx-auto max-w-6xl pb-20">

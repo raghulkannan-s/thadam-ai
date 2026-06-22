@@ -20,21 +20,7 @@ export default function HeroSection() {
       }}
       id="hero"
     >
-      <div
-        style={{
-          position: "relative",
-          zIndex: 2,
-          display: "flex",
-          flexDirection: "column",
-          alignItems: "flex-start",
-          textAlign: "left",
-          width: "100%",
-          maxWidth: "50%",
-          paddingLeft: "clamp(24px, 10vw, 120px)",
-          transform: "scale(0.9)",
-          transformOrigin: "left center"
-        }}
-      >
+      <div className="hero-content-wrapper">
         <motion.div
           className="fade-in-up"
           style={{

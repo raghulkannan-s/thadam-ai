@@ -45,8 +45,9 @@ public class User extends BaseEntity implements UserDetails {
     @Column(name = "avatar_url", length = 1024)
     private String avatarUrl;
 
-    @Column(name = "coins", nullable = false, columnDefinition = "integer default 0")
-    private int coins = 0;
+    @Column(name = "coins", nullable = false, columnDefinition = "integer default 50")
+    @Builder.Default
+    private int coins = 50;
 
     @PrePersist
     public void generatePublicId() {
