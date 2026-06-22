@@ -7,10 +7,7 @@ import HeroSection from "@/features/landing/components/HeroSection";
 import TopDownRoadmapScene from "@/features/landing/components/TopDownRoadmapScene";
 import {
   GenerateSection,
-  CustomizeSection,
   LearnSection,
-  TrackProgressSection,
-  CommunitySection,
   FinalCTASection
 } from "@/features/landing/components/TopDownSections";
 
@@ -28,10 +25,7 @@ export default function Home() {
         
         <HeroSection />
         <GenerateSection />
-        <CustomizeSection />
         <LearnSection />
-        <TrackProgressSection />
-        <CommunitySection />
         <FinalCTASection />
       </div>
     </div>

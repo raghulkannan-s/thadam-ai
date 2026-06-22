@@ -5,7 +5,6 @@ import { usePathname, useRouter } from 'next/navigation';
 import { Home, Compass, BookOpen, Users, Plus, X } from 'lucide-react';
 import { cn } from '@/utils/cn';
 import { Button } from '@/shared/ui/Button';
-import { ThemeToggle } from '@/shared/theme/ThemeToggle';
 
 const navItems = [
   { name: 'Home', href: '/home', icon: Home },
@@ -20,16 +19,17 @@ export function Sidebar({ isOpen = false, isDesktopOpen = true, setIsOpen }: { i
 
   return (
     <aside className={cn(
-      "fixed left-0 top-0 z-40 flex h-screen w-64 flex-col overflow-y-auto border-r border-[var(--border-subtle)] bg-[var(--bg-surface)] px-4 py-6 transition-transform duration-300",
-      isOpen ? "translate-x-0" : "-translate-x-full",
-      isDesktopOpen ? "lg:translate-x-0" : "lg:-translate-x-full"
+      "fixed left-0 top-0 z-40 flex h-screen flex-col overflow-y-auto border-r border-[var(--border-subtle)] bg-[var(--bg-surface)] py-6 transition-all duration-300",
+      isOpen ? "translate-x-0 w-64 px-4" : "-translate-x-full w-64 px-4",
+      "lg:translate-x-0",
+      isDesktopOpen ? "lg:w-64 lg:px-4" : "lg:w-20 lg:px-2"
     )}>
-      <div className="mb-10 flex items-center justify-between px-2">
+      <div className={cn("mb-10 flex items-center px-2", isDesktopOpen ? "justify-between" : "justify-center")}>
         <div className="flex items-center">
-          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-[var(--accent-primary)] text-white font-bold shadow-lg shadow-[var(--accent-primary)]/30">
+          <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-[var(--accent-primary)] text-white font-bold shadow-lg shadow-[var(--accent-primary)]/30">
             T
           </div>
-          <span className="ml-3 text-lg font-bold tracking-tight text-[var(--text-primary)]">
+          <span className={cn("ml-3 text-lg font-bold tracking-tight text-[var(--text-primary)] transition-opacity", !isDesktopOpen && "lg:hidden")}>
             Thadam
           </span>
         </div>
@@ -52,20 +52,25 @@ export function Sidebar({ isOpen = false, isDesktopOpen = true, setIsOpen }: { i
               key={item.name}
               href={item.href}
               className={cn(
-                'group flex items-center rounded-xl px-3 py-2.5 text-sm font-medium transition-all duration-200',
+                'group flex items-center rounded-xl py-2.5 text-sm font-medium transition-all duration-200',
+                isDesktopOpen ? 'px-3' : 'lg:justify-center px-3',
                 isActive
                   ? 'bg-[var(--accent-primary)]/10 text-[var(--accent-primary)] font-semibold'
                   : 'text-[var(--text-secondary)] hover:bg-[var(--bg-elevated)] hover:text-[var(--text-primary)]'
               )}
               onClick={() => setIsOpen?.(false)}
+              title={!isDesktopOpen ? item.name : undefined}
             >
               <item.icon
                 className={cn(
-                  'mr-3 h-5 w-5 transition-transform duration-200 group-hover:scale-110',
+                  'h-5 w-5 shrink-0 transition-transform duration-200 group-hover:scale-110',
+                  isDesktopOpen ? 'mr-3' : 'lg:mr-0 mr-3',
                   isActive ? 'text-[var(--accent-primary)]' : 'text-[var(--text-tertiary)]'
                 )}
               />
-              {item.name}
+              <span className={cn("transition-opacity whitespace-nowrap", !isDesktopOpen && "lg:hidden")}>
+                {item.name}
+              </span>
             </Link>
           );
         })}
@@ -74,19 +79,25 @@ export function Sidebar({ isOpen = false, isDesktopOpen = true, setIsOpen }: { i
 
         <Button 
           variant="primary" 
-          fullWidth 
-          className="justify-start shadow-md gap-2 h-12"
+          fullWidth={isDesktopOpen}
+          className={cn(
+            "shadow-md gap-2 h-12 transition-all overflow-hidden",
+            isDesktopOpen ? "justify-start px-4" : "lg:justify-center lg:px-0 lg:w-12 lg:mx-auto px-4 justify-start"
+          )}
           onClick={() => {
             setIsOpen?.(false);
             router.push('/roadmaps/new');
           }}
+          title={!isDesktopOpen ? "Create Roadmap" : undefined}
         >
-          <Plus className="h-5 w-5" />
-          Create Roadmap
+          <Plus className="h-5 w-5 shrink-0" />
+          <span className={cn("whitespace-nowrap transition-opacity", !isDesktopOpen && "lg:hidden")}>
+             Create Roadmap
+          </span>
         </Button>
       </nav>
 
-      <div className="mt-auto px-2 pb-4 flex flex-col gap-4">
+      <div className={cn("mt-auto pb-4 flex flex-col gap-4", isDesktopOpen ? "px-2" : "lg:hidden px-2")}>
           <div className="rounded-xl bg-gradient-to-br from-[var(--accent-primary)]/10 to-transparent p-4 border border-[var(--accent-primary)]/20">
             <h4 className="text-xs font-bold uppercase tracking-wider text-[var(--accent-primary)] mb-1">
               Pro Tip
@@ -95,7 +106,6 @@ export function Sidebar({ isOpen = false, isDesktopOpen = true, setIsOpen }: { i
               Fork a roadmap from the Explore page to customize it.
             </p>
           </div>
-          <ThemeToggle />
         </div>
     </aside>
   );

@@ -18,8 +18,8 @@ export function useForkRoadmap() {
       toast.success("Roadmap forked successfully!");
       queryClient.invalidateQueries({ queryKey: ["roadmaps"] });
     },
-    onError: () => {
-      toast.error("Failed to fork roadmap.");
+    onError: (error: Error) => {
+      toast.error(error.message || "Failed to fork roadmap.");
     },
   });
 }
@@ -41,9 +41,8 @@ export function useVoteRoadmap() {
       queryClient.invalidateQueries({ queryKey: ["roadmaps", variables.roadmapId] });
       queryClient.invalidateQueries({ queryKey: ["roadmaps", "trending"] });
     },
-    onError: (error: any) => {
-      const message = error.response?.data?.message || "Failed to vote.";
-      toast.error(message);
+    onError: (error: Error) => {
+      toast.error(error.message || "Failed to vote.");
     },
   });
 }
@@ -65,8 +64,8 @@ export function useUpdateTaskStatus() {
       queryClient.invalidateQueries({ queryKey: ["roadmaps", data.roadmapId, "tasks"] });
       queryClient.invalidateQueries({ queryKey: ["roadmaps", data.roadmapId] });
     },
-    onError: () => {
-      toast.error("Failed to update task.");
+    onError: (error: Error) => {
+      toast.error(error.message || "Failed to update task.");
     },
   });
 }
@@ -87,8 +86,8 @@ export function useGenerateRoadmap() {
       toast.success("Roadmap generated!");
       queryClient.invalidateQueries({ queryKey: ["roadmaps"] });
     },
-    onError: () => {
-      toast.error("Failed to generate roadmap. Please try again.");
+    onError: (error: Error) => {
+      toast.error(error.message || "Failed to generate roadmap. Please try again.");
     },
   });
 }
@@ -110,8 +109,8 @@ export function useUpdateRoadmap() {
       queryClient.invalidateQueries({ queryKey: ["roadmaps", data.id] });
       queryClient.invalidateQueries({ queryKey: ["roadmaps"] });
     },
-    onError: () => {
-      toast.error("Failed to update roadmap.");
+    onError: (error: Error) => {
+      toast.error(error.message || "Failed to update roadmap.");
     },
   });
 }

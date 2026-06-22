@@ -3,10 +3,11 @@ export interface GenerateRoadmapPromptParams {
   difficulty: string;
   durationWeeks: number;
   estimatedHoursPerDay: number;
+  additionalContext?: string;
 }
 
 export function buildRoadmapPrompt(params: GenerateRoadmapPromptParams): string {
-  const { topic, difficulty, durationWeeks, estimatedHoursPerDay } = params;
+  const { topic, difficulty, durationWeeks, estimatedHoursPerDay, additionalContext } = params;
 
   return `
 You are an expert curriculum designer and educational consultant. I need you to create a comprehensive, highly structured learning roadmap for the following topic:
@@ -15,6 +16,7 @@ You are an expert curriculum designer and educational consultant. I need you to 
 **Target Audience Difficulty:** ${difficulty.toLowerCase()}
 **Total Duration:** ${durationWeeks} weeks
 **Time Commitment:** ${estimatedHoursPerDay} hours per day
+${additionalContext && additionalContext.trim() !== '' ? `**Specific User Instructions/Context:** ${additionalContext.trim()}` : ''}
 
 Please generate a detailed, phase-by-phase roadmap that strictly adheres to these constraints. For each phase (milestone), provide:
 1. A clear, inspiring title for the phase.

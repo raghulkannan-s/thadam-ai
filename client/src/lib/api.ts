@@ -88,7 +88,16 @@ export const apiFetch = async <T>(url: string, options: FetchOptions = {}): Prom
     return {
       data: response.data?.data !== undefined ? response.data.data : response.data,
     };
-  } catch (error: unknown) {
-    throw error;
+  } catch (error: any) {
+    if (error.response?.data?.message) {
+      throw new Error(error.response.data.message);
+    } else if (error.response?.data && typeof error.response.data === 'string') {
+      throw new Error(error.response.data);
+    } else if (error.response?.status) {
+      throw new Error(`An error occurred (Status: ${error.response.status}). Please try again.`);
+    } else if (error.message) {
+      throw new Error(error.message);
+    }
+    throw new Error('An unexpected error occurred. Please try again.');
   }
 };

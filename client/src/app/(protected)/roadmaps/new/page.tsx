@@ -18,19 +18,7 @@ const difficulties = [
   { value: 'ADVANCED', label: 'Advanced', description: 'Deep dive' },
 ];
 
-const durations = [
-  { value: 2, label: '2 Weeks', description: 'Sprint' },
-  { value: 4, label: '1 Month', description: 'Standard' },
-  { value: 8, label: '2 Months', description: 'Deep' },
-  { value: 12, label: '3 Months', description: 'Mastery' },
-];
 
-const hoursPerDayOptions = [
-  { value: 0.5, label: '30 min/day' },
-  { value: 1.0, label: '1 hr/day' },
-  { value: 2.0, label: '2 hrs/day' },
-  { value: 4.0, label: '4+ hrs/day' },
-];
 
 export default function NewRoadmapPage() {
   const router = useRouter();
@@ -39,6 +27,7 @@ export default function NewRoadmapPage() {
   const [difficulty, setDifficulty] = useState('INTERMEDIATE');
   const [durationWeeks, setDurationWeeks] = useState(4);
   const [estimatedHoursPerDay, setEstimatedHoursPerDay] = useState(1.0);
+  const [additionalContext, setAdditionalContext] = useState('');
   const [visibility, setVisibility] = useState('PUBLIC');
   
   const { mutate: generate, isPending } = useGenerateRoadmap();
@@ -71,8 +60,8 @@ export default function NewRoadmapPage() {
     e.preventDefault();
     if (!topic.trim()) return;
 
-    if (coinData && coinData.balance < 50) {
-      toast.error("Insufficient coins. Generating a roadmap requires 50 coins.");
+    if (coinData && coinData.balance < 10) {
+      toast.error("Insufficient coins. Generating a roadmap requires 10 coins.");
       return;
     }
     
@@ -80,7 +69,8 @@ export default function NewRoadmapPage() {
       topic,
       difficulty,
       durationWeeks,
-      estimatedHoursPerDay
+      estimatedHoursPerDay,
+      additionalContext
     });
     
     generate(
@@ -171,36 +161,53 @@ export default function NewRoadmapPage() {
           {/* Duration */}
           <div>
             <label className="block text-sm font-semibold text-[var(--text-primary)] mb-3 flex items-center">
-              <Clock className="mr-2 h-4 w-4 text-[var(--text-tertiary)]" /> Timeline
+              <Clock className="mr-2 h-4 w-4 text-[var(--text-tertiary)]" /> Timeline (Weeks)
             </label>
-            <select
+            <input
+              type="number"
+              min="1"
+              max="52"
               value={durationWeeks}
               onChange={(e) => setDurationWeeks(Number(e.target.value))}
               disabled={isPending}
+              placeholder="e.g. 4"
               className="w-full h-12 px-4 rounded-[var(--radius-md)] border border-[var(--border-default)] bg-[var(--bg-surface)] text-[var(--text-primary)] text-sm focus:outline-none focus:ring-2 focus:ring-[var(--accent-primary)] transition-all shadow-sm"
-            >
-              {durations.map(d => (
-                <option key={d.value} value={d.value}>{d.label} ({d.description})</option>
-              ))}
-            </select>
+            />
           </div>
 
           {/* Time Commitment */}
           <div>
             <label className="block text-sm font-semibold text-[var(--text-primary)] mb-3 flex items-center">
-              <Clock className="mr-2 h-4 w-4 text-[var(--text-tertiary)]" /> Daily Commitment
+              <Clock className="mr-2 h-4 w-4 text-[var(--text-tertiary)]" /> Daily Commitment (Hours)
             </label>
-            <select
+            <input
+              type="number"
+              min="0.5"
+              max="24"
+              step="0.5"
               value={estimatedHoursPerDay}
               onChange={(e) => setEstimatedHoursPerDay(Number(e.target.value))}
               disabled={isPending}
+              placeholder="e.g. 1.5"
               className="w-full h-12 px-4 rounded-[var(--radius-md)] border border-[var(--border-default)] bg-[var(--bg-surface)] text-[var(--text-primary)] text-sm focus:outline-none focus:ring-2 focus:ring-[var(--accent-primary)] transition-all shadow-sm"
-            >
-              {hoursPerDayOptions.map(o => (
-                <option key={o.value} value={o.value}>{o.label}</option>
-              ))}
-            </select>
+            />
           </div>
+        </div>
+
+        {/* Additional Context */}
+        <div>
+          <label htmlFor="context" className="block text-sm font-semibold text-[var(--text-primary)] mb-3 flex items-center">
+            <Sparkles className="mr-2 h-4 w-4 text-[var(--text-tertiary)]" /> Additional Context & Preferences (Optional)
+          </label>
+          <textarea
+            id="context"
+            rows={4}
+            value={additionalContext}
+            onChange={(e) => setAdditionalContext(e.target.value)}
+            placeholder="e.g. 'I already know HTML and CSS, focus on React specifically. Make it highly project-based.' Provide any precise instructions for the AI."
+            className="w-full p-4 rounded-[var(--radius-md)] border border-[var(--border-default)] bg-[var(--bg-surface)] text-[var(--text-primary)] placeholder-[var(--text-tertiary)] text-sm focus:outline-none focus:ring-2 focus:ring-[var(--accent-primary)] focus:border-transparent transition-all shadow-sm resize-none"
+            disabled={isPending}
+          />
         </div>
 
         {/* Visibility */}
@@ -247,7 +254,7 @@ export default function NewRoadmapPage() {
               </div>
             ) : (
               <>
-                <Sparkles className="mr-2 h-5 w-5" /> Generate Roadmap (50 Coins)
+                <Sparkles className="mr-2 h-5 w-5" /> Generate Roadmap (10 Coins)
               </>
             )}
           </Button>

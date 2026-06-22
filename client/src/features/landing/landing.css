@@ -272,3 +272,146 @@ body {
   transition: opacity 0.5s ease !important;
   pointer-events: none;
 }
+
+/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   Mobile Responsive Overrides
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+
+/* ─── Responsive Layout Wrappers ─── */
+.aircraft-journey-column {
+  position: fixed;
+  top: 0;
+  right: 0;
+  width: 50vw; /* Default desktop */
+  height: 100vh;
+  z-index: 10;
+  pointer-events: none;
+  transition: width 0.5s ease-out;
+}
+
+.aircraft-journey-column.taking-off {
+  width: 100vw;
+}
+
+.section-grid {
+  width: 100%;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 40px;
+  align-items: center;
+  transform: scale(0.9);
+  transform-origin: left center;
+}
+
+.left-text-column {
+  padding-left: clamp(24px, 10vw, 120px);
+  padding-right: 40px;
+}
+
+.hero-content-wrapper {
+  width: 100%;
+  max-width: 50%;
+  padding-left: clamp(24px, 10vw, 120px);
+  transform: scale(0.9);
+  transform-origin: left center;
+  position: relative;
+  z-index: 20; /* Ensure hero text stays above canvas on mobile */
+}
+
+/* Base text styling for mobile overlay */
+.text-content {
+  position: relative;
+  z-index: 20; /* Elevate above canvas */
+}
+
+@media (max-width: 768px) {
+  /* ─── Mobile Canvas Expansion ─── */
+  .aircraft-journey-column {
+    width: 100vw;
+    left: 0;
+    right: 0;
+    z-index: 0; /* Fall behind the text */
+  }
+
+  /* ─── Mobile Section Grid Stack ─── */
+  .section-grid {
+    grid-template-columns: 1fr;
+    transform: scale(0.95);
+    transform-origin: center center;
+    gap: 24px;
+  }
+
+  .left-text-column {
+    padding-left: 24px;
+    padding-right: 24px;
+    text-align: center;
+    
+    /* Subtle glassmorphism to ensure text is readable over the jet */
+    background: var(--landing-card-bg);
+    border-radius: 16px;
+    padding-top: 32px;
+    padding-bottom: 32px;
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    border: 1px solid var(--landing-card-border);
+    box-shadow: var(--landing-card-shadow);
+  }
+  
+  .right-visual-column {
+    display: none; /* Hide visual column completely */
+  }
+
+  /* ─── Mobile Hero Section ─── */
+  .hero-content-wrapper {
+    max-width: 100%;
+    padding-left: 24px;
+    padding-right: 24px;
+    text-align: center;
+    transform: scale(0.95);
+    transform-origin: center center;
+  }
+
+  /* ─── Mobile Typography ─── */
+  .hero-headline {
+    font-size: clamp(2rem, 10vw, 3rem);
+    text-shadow: 0 4px 20px rgba(0,0,0,0.5); /* Readable overlay */
+  }
+
+  .hero-subheadline {
+    margin-left: auto;
+    margin-right: auto;
+    text-shadow: 0 2px 10px rgba(0,0,0,0.5);
+  }
+
+  /* ─── Mobile Header & Footer ─── */
+  .landing-nav__inner {
+    flex-wrap: wrap;
+    gap: 16px;
+    justify-content: center;
+  }
+  
+  .landing-nav--scrolled {
+    padding-bottom: 16px;
+  }
+
+  #final-cta > div {
+    grid-template-columns: 1fr !important;
+    text-align: center;
+  }
+  
+  #final-cta > div > div {
+    padding-left: 24px !important;
+    padding-right: 24px !important;
+  }
+
+  #final-cta .cta-primary {
+    margin: 0 auto;
+  }
+
+  footer {
+    flex-direction: column;
+    gap: 16px;
+    text-align: center;
+    padding: 24px !important;
+  }
+}

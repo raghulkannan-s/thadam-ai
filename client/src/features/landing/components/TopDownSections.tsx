@@ -22,20 +22,12 @@ function SectionWrapper({ children, id }: { children: React.ReactNode; id: strin
         initial={{ opacity: 0, y: 20, scale: 0.9 }}
         animate={isInView ? { opacity: 1, y: 0, scale: 0.9 } : {}}
         transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
-        style={{ 
-          width: "100%", 
-          display: "grid", 
-          gridTemplateColumns: "1fr 1fr", 
-          gap: "40px",
-          alignItems: "center"
-        }}
         className="section-grid"
       >
-        {/* We use a specific wrapper for the left side to apply the padding */}
-        <div style={{ paddingLeft: "clamp(24px, 10vw, 120px)", paddingRight: "40px" }} className="left-text-column">
+        <div className="left-text-column">
            {Array.isArray(children) ? children[0] : children}
         </div>
-        <div className="right-visual-column" style={{ display: "flex", justifyContent: "center", paddingRight: "clamp(24px, 5vw, 60px)" }}>
+        <div className="right-visual-column">
            {Array.isArray(children) ? children[1] : null}
         </div>
       </motion.div>
