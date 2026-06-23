@@ -1,165 +1,157 @@
 'use client';
 
+import React, { useState } from 'react';
 import { useAuth } from '@/features/auth/context/auth-context';
-import { apiFetch } from '@/lib/api';
 import { Button } from '@/shared/ui/Button';
-import { Card, CardContent } from '@/shared/ui/Card';
-import { PageLoader } from '@/shared/ui/LoadingSpinner';
+import { Sparkles, Zap, Coins, Check } from 'lucide-react';
+import apiClient from '@/core/api/client';
 import { toast } from 'sonner';
-import { Check, Sparkles, Coins, Zap } from 'lucide-react';
-import { useState } from 'react';
+import { PageLoader } from '@/shared/ui/LoadingSpinner';
 
-export default function PricingPage() {
-  const { user, isLoading } = useAuth();
-  const [loadingType, setLoadingType] = useState<string | null>(null);
+export default function ProPage() {
+  const { user } = useAuth();
+  const [loading, setLoading] = useState<string | null>(null);
 
   const handleCheckout = async (productType: string) => {
-    setLoadingType(productType);
     try {
-      const res = await apiFetch<{ url: string }>('/api/v1/payments/create-checkout-session', {
-        method: 'POST',
-        body: JSON.stringify({ productType }),
-      });
+      setLoading(productType);
+      const res = await apiClient.post('/api/v1/payments/create-checkout-session', { productType });
       if (res.data?.url) {
         window.location.href = res.data.url;
-      } else {
-        throw new Error('Failed to create checkout session');
       }
-    } catch (error) {
-      toast.error(error instanceof Error ? error.message : 'Checkout failed');
-      setLoadingType(null);
+    } catch (err) {
+      toast.error("Failed to initiate checkout");
+      console.error(err);
+    } finally {
+      setLoading(null);
     }
   };
-
-  if (isLoading) return <PageLoader />;
 
   const isPremium = user?.plan === 'PREMIUM';
 
   return (
-    <div className="mx-auto max-w-5xl py-12 px-4 sm:px-6 lg:px-8">
-      <div className="text-center max-w-2xl mx-auto mb-16">
-        <h1 className="text-4xl font-extrabold text-[var(--text-primary)] mb-4">
-          Supercharge Your Learning
+    <div className="max-w-6xl mx-auto py-8 sm:py-12 px-4 sm:px-6">
+      
+      <div className="mb-10 text-center sm:text-left">
+        <h1 className="text-3xl sm:text-4xl font-extrabold text-[var(--text-primary)] mb-3">
+          Upgrade & Refuel
         </h1>
-        <p className="text-lg text-[var(--text-secondary)]">
-          Upgrade to Premium for unlimited forks and daily coins, or buy coins instantly to keep generating roadmaps.
+        <p className="text-[var(--text-secondary)] text-lg max-w-2xl">
+          Get Premium for unlimited roadmaps, or grab a quick coin pack to generate more content instantly.
         </p>
       </div>
 
-      <div className="grid md:grid-cols-2 gap-8 max-w-4xl mx-auto mb-16">
-        {/* Free Plan */}
-        <Card className="border-[var(--border-subtle)] bg-[var(--bg-elevated)] opacity-80">
-          <CardContent className="p-8">
-            <h3 className="text-2xl font-bold text-[var(--text-primary)] mb-2">Free Plan</h3>
-            <p className="text-[var(--text-secondary)] mb-6">Perfect for getting started</p>
-            <div className="mb-6">
-              <span className="text-4xl font-bold text-[var(--text-primary)]">$0</span>
-              <span className="text-[var(--text-tertiary)]">/forever</span>
+      <div className="grid lg:grid-cols-5 gap-8">
+        
+        {/* LEFT COLUMN: PREMIUM PLAN */}
+        <div className="lg:col-span-3">
+          <div className="rounded-2xl border-2 border-[var(--accent-primary)] bg-[var(--bg-surface)] p-6 sm:p-8 shadow-sm flex flex-col h-full relative overflow-hidden">
+            <div className="absolute top-0 right-0 bg-[var(--accent-primary)] text-white text-xs font-bold uppercase tracking-wider px-4 py-1.5 rounded-bl-xl shadow-sm">
+              Premium Subscription
             </div>
-            <ul className="space-y-4 mb-8">
-              <li className="flex items-center text-[var(--text-secondary)]">
-                <Check className="h-5 w-5 text-green-500 mr-3 shrink-0" />
-                10 Daily Coins
-              </li>
-              <li className="flex items-center text-[var(--text-secondary)]">
-                <Check className="h-5 w-5 text-green-500 mr-3 shrink-0" />
-                Create Custom Roadmaps
-              </li>
-              <li className="flex items-center text-[var(--text-secondary)]">
-                <Check className="h-5 w-5 text-[var(--text-tertiary)] mr-3 shrink-0" />
-                Max 3 Active Forks
-              </li>
-            </ul>
-            <Button variant="outline" className="w-full" disabled>
-              {isPremium ? 'Available' : 'Current Plan'}
-            </Button>
-          </CardContent>
-        </Card>
-
-        {/* Premium Plan */}
-        <Card className="border-[var(--accent-primary)] bg-gradient-to-b from-[var(--accent-primary)]/10 to-transparent relative overflow-hidden shadow-2xl shadow-[var(--accent-primary)]/20">
-          <div className="absolute top-0 right-0 bg-[var(--accent-primary)] text-white text-xs font-bold px-3 py-1 rounded-bl-lg">
-            RECOMMENDED
-          </div>
-          <CardContent className="p-8">
-            <h3 className="text-2xl font-bold text-[var(--accent-primary)] mb-2 flex items-center">
-              <Sparkles className="w-6 h-6 mr-2" />
-              Premium
-            </h3>
-            <p className="text-[var(--text-secondary)] mb-6">For power learners</p>
-            <div className="mb-6">
-              <span className="text-4xl font-bold text-[var(--text-primary)]">$9.99</span>
-              <span className="text-[var(--text-tertiary)]">/month</span>
+            
+            <div className="flex items-center gap-4 mb-6 mt-2">
+              <div className="w-12 h-12 rounded-xl bg-[var(--accent-primary)]/10 flex items-center justify-center border border-[var(--accent-primary)]/20">
+                <Sparkles className="w-6 h-6 text-[var(--accent-primary)]" />
+              </div>
+              <div>
+                <h3 className="text-2xl font-bold text-[var(--text-primary)]">Pro Plan</h3>
+                <p className="text-[var(--text-secondary)]">The ultimate learning experience.</p>
+              </div>
             </div>
-            <ul className="space-y-4 mb-8">
-              <li className="flex items-center text-[var(--text-primary)] font-medium">
-                <Check className="h-5 w-5 text-[var(--accent-primary)] mr-3 shrink-0" />
-                100 Daily Coins
-              </li>
-              <li className="flex items-center text-[var(--text-primary)] font-medium">
-                <Check className="h-5 w-5 text-[var(--accent-primary)] mr-3 shrink-0" />
-                Unlimited Forks
-              </li>
-              <li className="flex items-center text-[var(--text-primary)] font-medium">
-                <Check className="h-5 w-5 text-[var(--accent-primary)] mr-3 shrink-0" />
-                Priority AI Generation
-              </li>
-            </ul>
+            
+            <div className="mb-6 flex items-baseline">
+              <span className="text-4xl font-extrabold text-[var(--text-primary)]">$9.99</span>
+              <span className="text-lg text-[var(--text-secondary)] ml-2">/ month</span>
+            </div>
+            
+            <div className="grid sm:grid-cols-2 gap-4 mb-8 flex-grow">
+              <div className="flex items-start text-[var(--text-primary)]">
+                <Check className="w-5 h-5 text-[var(--accent-primary)] mr-3 shrink-0 mt-0.5" />
+                <span><strong className="block">100 Daily Coins</strong> Refresh every 24 hours</span>
+              </div>
+              <div className="flex items-start text-[var(--text-primary)]">
+                <Check className="w-5 h-5 text-[var(--accent-primary)] mr-3 shrink-0 mt-0.5" />
+                <span><strong className="block">Unlimited Roadmaps</strong> Create without limits</span>
+              </div>
+              <div className="flex items-start text-[var(--text-primary)]">
+                <Check className="w-5 h-5 text-[var(--accent-primary)] mr-3 shrink-0 mt-0.5" />
+                <span><strong className="block">Priority Speed</strong> Faster AI generation</span>
+              </div>
+            </div>
+            
             <Button 
-              className="w-full bg-[var(--accent-primary)] hover:bg-[var(--accent-hover)] text-white border-0"
+              className="w-full h-12 text-lg font-bold bg-[var(--accent-primary)] hover:bg-[var(--accent-hover)] text-white border-none shadow-md shadow-[var(--accent-primary)]/20"
               onClick={() => handleCheckout('premium')}
-              disabled={loadingType !== null || isPremium}
+              disabled={loading !== null || isPremium}
             >
-              {loadingType === 'premium' ? 'Redirecting...' : isPremium ? 'You are Premium!' : 'Upgrade to Premium'}
+              {loading === 'premium' ? <PageLoader size={20} color="white" /> : isPremium ? 'You are Premium!' : 'Subscribe to Premium'}
             </Button>
-          </CardContent>
-        </Card>
-      </div>
+          </div>
+        </div>
 
-      {/* Coin Packages */}
-      <div className="max-w-4xl mx-auto">
-        <h2 className="text-2xl font-bold text-[var(--text-primary)] mb-6 flex items-center justify-center">
-          <Coins className="w-6 h-6 mr-2 text-yellow-500" />
-          Need more coins now?
-        </h2>
-        <div className="grid sm:grid-cols-2 gap-6">
-          <Card className="border-[var(--border-subtle)] hover:border-yellow-500/50 transition-colors cursor-pointer bg-[var(--bg-elevated)]">
-            <CardContent className="p-6 flex items-center justify-between">
-              <div>
-                <h4 className="font-bold text-lg text-[var(--text-primary)] mb-1">100 Coins</h4>
-                <p className="text-[var(--text-secondary)] text-sm">$4.99 one-time</p>
-              </div>
-              <Button 
-                variant="outline"
-                className="border-yellow-500 text-yellow-600 hover:bg-yellow-500/10"
-                onClick={() => handleCheckout('coins_100')}
-                disabled={loadingType !== null}
-              >
-                {loadingType === 'coins_100' ? <PageLoader size={16} /> : 'Buy Now'}
-              </Button>
-            </CardContent>
-          </Card>
-
-          <Card className="border-[var(--border-subtle)] hover:border-yellow-500 transition-colors cursor-pointer bg-gradient-to-r from-yellow-500/5 to-transparent relative overflow-hidden">
-            <div className="absolute top-0 right-0 bg-yellow-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-bl-lg">
-              BEST VALUE
+        {/* RIGHT COLUMN: COIN PACKAGES */}
+        <div className="lg:col-span-2 flex flex-col gap-5">
+          <h3 className="text-xl font-bold text-[var(--text-primary)] flex items-center gap-2 mb-1">
+            <Coins className="w-5 h-5 text-yellow-500" />
+            Coin Packs
+          </h3>
+          
+          {/* 500 COINS (Best Value) */}
+          <div className="rounded-2xl border-2 border-yellow-500 bg-[var(--bg-surface)] p-5 shadow-md flex flex-col relative transition-all hover:shadow-lg hover:border-yellow-400 cursor-pointer" onClick={() => { if(loading === null) handleCheckout('coins_500') }}>
+            <div className="absolute -top-3 right-4 bg-yellow-500 text-white text-[10px] font-black tracking-widest uppercase px-3 py-1 rounded-full shadow-sm flex items-center gap-1">
+              <Zap className="w-3 h-3 fill-current" /> BEST VALUE
             </div>
-            <CardContent className="p-6 flex items-center justify-between">
-              <div>
-                <h4 className="font-bold text-lg text-[var(--text-primary)] mb-1 flex items-center">
-                  500 Coins <Zap className="w-4 h-4 ml-1 text-yellow-500" />
-                </h4>
-                <p className="text-[var(--text-secondary)] text-sm">$19.99 one-time</p>
+            
+            <div className="flex justify-between items-center mb-4">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-full bg-yellow-500/10 flex items-center justify-center">
+                  <Coins className="w-6 h-6 text-yellow-500" />
+                </div>
+                <div>
+                  <h4 className="font-bold text-xl text-[var(--text-primary)] leading-tight">500 Coins</h4>
+                  <p className="text-yellow-600 font-semibold text-sm">Most popular</p>
+                </div>
               </div>
-              <Button 
-                className="bg-yellow-500 hover:bg-yellow-600 text-white border-0 shadow-lg shadow-yellow-500/20"
-                onClick={() => handleCheckout('coins_500')}
-                disabled={loadingType !== null}
-              >
-                {loadingType === 'coins_500' ? <PageLoader size={16} /> : 'Buy Now'}
-              </Button>
-            </CardContent>
-          </Card>
+              <div className="text-right">
+                <div className="font-extrabold text-2xl text-[var(--text-primary)]">$19.99</div>
+              </div>
+            </div>
+            
+            <Button 
+              className="w-full bg-yellow-500 hover:bg-yellow-600 text-white border-0 shadow-sm font-bold h-10"
+              disabled={loading !== null}
+            >
+              {loading === 'coins_500' ? <PageLoader size={16} color="white" /> : 'Buy 500 Coins'}
+            </Button>
+          </div>
+
+          {/* 100 COINS */}
+          <div className="rounded-2xl border border-[var(--border-subtle)] bg-[var(--bg-surface)] p-5 shadow-sm flex flex-col transition-all hover:border-yellow-500/50 hover:shadow-md cursor-pointer" onClick={() => { if(loading === null) handleCheckout('coins_100') }}>
+            <div className="flex justify-between items-center mb-4">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-full bg-[var(--bg-elevated)] flex items-center justify-center">
+                  <Coins className="w-6 h-6 text-yellow-500" />
+                </div>
+                <div>
+                  <h4 className="font-bold text-xl text-[var(--text-primary)] leading-tight">100 Coins</h4>
+                  <p className="text-[var(--text-secondary)] text-sm">Quick top-up</p>
+                </div>
+              </div>
+              <div className="text-right">
+                <div className="font-extrabold text-2xl text-[var(--text-primary)]">$4.99</div>
+              </div>
+            </div>
+            
+            <Button 
+              variant="outline"
+              className="w-full border-[var(--border-subtle)] hover:bg-yellow-500/10 hover:text-yellow-600 hover:border-yellow-500/30 font-bold h-10"
+              disabled={loading !== null}
+            >
+              {loading === 'coins_100' ? <PageLoader size={16} /> : 'Buy 100 Coins'}
+            </Button>
+          </div>
+          
         </div>
       </div>
     </div>

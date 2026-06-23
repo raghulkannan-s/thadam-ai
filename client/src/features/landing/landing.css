@@ -335,9 +335,12 @@ body {
 
   /* ─── Mobile Section Grid Stack ─── */
   .section-grid {
-    grid-template-columns: 1fr;
-    transform: scale(0.95);
-    transform-origin: center center;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    height: 100%;
+    width: 100%;
+    padding-bottom: 80px;
     gap: 24px;
   }
 

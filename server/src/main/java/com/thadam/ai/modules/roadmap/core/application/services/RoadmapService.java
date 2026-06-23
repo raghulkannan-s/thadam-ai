@@ -197,6 +197,30 @@ public class RoadmapService {
         roadmapRepository.findByPublicId(publicId).ifPresent(r -> roadmapRepository.incrementViewCount(r.getId()));
     }
 
+
+
+    @Transactional
+    @CacheEvict(value = "roadmaps", key = "#publicId")
+    public RoadmapResponse forceUpdateVisibility(String publicId, RoadmapVisibility visibility) {
+        Roadmap roadmap = roadmapRepository.findByPublicId(publicId)
+                .orElseThrow(() -> new NotFoundException("Roadmap not found with id: " + publicId));
+        
+        RoadmapVisibility oldVisibility = roadmap.getVisibility();
+        roadmap.setVisibility(visibility);
+        Roadmap saved = roadmapRepository.save(roadmap);
+
+        String performedBy = MDC.get("userId");
+        log.info("ROADMAP_FORCE_VISIBILITY_CHANGE roadmapId={} oldVisibility={} newVisibility={} performedBy={} correlationId={}",
+                publicId, oldVisibility, visibility, performedBy, MDC.get("correlationId"));
+        
+        return toRoadmapResponse(saved);
+    }
+
+    public Page<CommunityRoadmapResponse> getAllRoadmapsForModeration(Pageable pageable) {
+        Page<Roadmap> roadmaps = roadmapRepository.findAll(pageable);
+        return hydrateCommunityRoadmaps(roadmaps, null);
+    }
+
     @Transactional
     @CacheEvict(value = "roadmaps", key = "#publicId")
     public void deleteRoadmap(String publicId, User user) {

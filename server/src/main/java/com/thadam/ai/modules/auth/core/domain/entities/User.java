@@ -59,6 +59,10 @@ public class User extends BaseEntity implements UserDetails {
     @Enumerated(EnumType.STRING)
     private Role role;
 
+    @Column(name = "active", nullable = false)
+    @Builder.Default
+    private boolean active = true;
+
 
     @Column(name = "verification_score")
     @Builder.Default
@@ -101,6 +105,6 @@ public class User extends BaseEntity implements UserDetails {
 
     @Override
     public boolean isEnabled() {
-        return true;
+        return active;
     }
 }

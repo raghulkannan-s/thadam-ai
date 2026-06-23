@@ -168,7 +168,7 @@ export default function RoadmapContentPage({ params }: { params: Promise<{ id: s
   };
   
   return (
-    <div className="mx-auto max-w-5xl pb-20 pt-6">
+    <div className="mx-auto max-w-5xl px-4 sm:px-6 pb-20 pt-6">
       
       {/* SECTION 1: Rich Header Banner */}
       <div className="mb-12 overflow-hidden rounded-3xl border border-[var(--border-subtle)] bg-gradient-to-br from-[var(--bg-surface)] to-[var(--bg-elevated)] shadow-xl relative">
@@ -256,7 +256,7 @@ export default function RoadmapContentPage({ params }: { params: Promise<{ id: s
         </div>
         
         {/* Footer actions of Banner */}
-        <div className="bg-[var(--bg-base)] border-t border-[var(--border-subtle)] p-4 px-8 flex flex-wrap gap-4 items-center justify-between">
+        <div className="bg-[var(--bg-base)] border-t border-[var(--border-subtle)] p-4 sm:px-8 flex flex-col sm:flex-row flex-wrap gap-4 items-start sm:items-center justify-between">
           <div className="flex items-center gap-4 text-sm text-[var(--text-tertiary)]">
              <div className="flex items-center gap-1.5"><Users className="h-4 w-4" /> 124 Learners</div>
              <div className="flex items-center gap-1.5"><GitFork className="h-4 w-4" /> {roadmap.forkedFromId ? 'Forked' : 'Original'}</div>

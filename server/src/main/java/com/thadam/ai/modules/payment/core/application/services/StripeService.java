@@ -22,22 +22,23 @@ public class StripeService {
                 .setCancelUrl(frontendUrl + "/pro?canceled=true")
                 .putMetadata("userId", user.getId().toString())
                 .putMetadata("productType", productType)
-                .setCustomerEmail(user.getEmail());
+                .setCustomerEmail(user.getEmail())
+                .putExtraParam("payment_method_types", java.util.List.of("card", "upi"));
 
         long amount = 0;
         String name = "";
         
         switch (productType) {
             case "premium":
-                amount = 1000; // $10.00
+                amount = 49900; // ₹499.00
                 name = "Thadam AI Premium (Monthly)";
                 break;
             case "coins_100":
-                amount = 500; // $5.00
+                amount = 9900; // ₹99.00
                 name = "100 Thadam Coins";
                 break;
             case "coins_500":
-                amount = 2000; // $20.00
+                amount = 39900; // ₹399.00
                 name = "500 Thadam Coins";
                 break;
             default:
@@ -48,7 +49,7 @@ public class StripeService {
                 .setQuantity(1L)
                 .setPriceData(
                         SessionCreateParams.LineItem.PriceData.builder()
-                                .setCurrency("usd")
+                                .setCurrency("inr")
                                 .setUnitAmount(amount)
                                 .setProductData(
                                         SessionCreateParams.LineItem.PriceData.ProductData.builder()
@@ -65,7 +66,7 @@ public class StripeService {
                 .setQuantity(1L)
                 .setPriceData(
                         SessionCreateParams.LineItem.PriceData.builder()
-                                .setCurrency("usd")
+                                .setCurrency("inr")
                                 .setUnitAmount(amount)
                                 .setRecurring(
                                         SessionCreateParams.LineItem.PriceData.Recurring.builder()

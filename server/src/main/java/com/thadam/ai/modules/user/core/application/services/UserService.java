@@ -15,6 +15,7 @@ import com.thadam.ai.modules.auth.core.domain.entities.User;
 import com.thadam.ai.modules.auth.infrastructure.repositories.UserRepository;
 import com.thadam.ai.common.audit.AuditService;
 import com.thadam.ai.common.exception.ConflictException;
+import com.thadam.ai.common.cloudinary.CloudinaryService;
 import com.thadam.ai.common.exception.NotFoundException;
 import com.thadam.ai.modules.roadmap.infrastructure.repositories.RoadmapRepository;
 import com.thadam.ai.modules.user.core.application.dtos.CreateUserRequest;
@@ -36,6 +37,7 @@ public class UserService {
     private final PasswordEncoder passwordEncoder;
     private final RoadmapRepository roadmapRepository;
     private final AuditService auditService;
+    private final CloudinaryService cloudinaryService;
 
     @Transactional
     @CacheEvict(value = "users", allEntries = true)
@@ -103,7 +105,14 @@ public class UserService {
         user.setName(req.name());
         user.setEmail(req.email());
         if (req.avatarUrl() != null) {
-            user.setAvatarUrl(req.avatarUrl());
+            if (req.avatarUrl().startsWith("data:image")) {
+                String secureUrl = cloudinaryService.uploadBase64Image(req.avatarUrl());
+                if (secureUrl != null) {
+                    user.setAvatarUrl(secureUrl);
+                }
+            } else {
+                user.setAvatarUrl(req.avatarUrl());
+            }
         }
 
         User updatedUser = userRepository.save(user);

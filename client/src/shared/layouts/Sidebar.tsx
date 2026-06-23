@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
-import { Home, Compass, BookOpen, Users, Plus, X, Menu, Sparkles } from 'lucide-react';
+import { Home, Compass, BookOpen, Users, Plus, X, Menu, Sparkles, PanelLeftClose, PanelLeftOpen } from 'lucide-react';
 import { cn } from '@/utils/cn';
 import { Button } from '@/shared/ui/Button';
 
@@ -11,7 +11,6 @@ const navItems = [
   { name: 'Explore', href: '/community', icon: Compass },
   { name: 'My Learning', href: '/my-learning', icon: BookOpen },
   { name: 'People', href: '/people', icon: Users },
-  { name: 'Premium', href: '/pricing', icon: Sparkles },
 ];
 
 export function Sidebar({ isOpen = false, isDesktopOpen = true, setIsOpen, setIsDesktopOpen }: { isOpen?: boolean; isDesktopOpen?: boolean; setIsOpen?: (v: boolean) => void; setIsDesktopOpen?: (v: boolean) => void }) {
@@ -36,25 +35,13 @@ export function Sidebar({ isOpen = false, isDesktopOpen = true, setIsOpen, setIs
                 Thadam
               </span>
             </div>
-            {/* Desktop Toggle Button (Expanded) */}
-            <button 
-              className="hidden lg:block p-1.5 rounded-md text-[var(--text-secondary)] hover:bg-[var(--bg-elevated)] transition-colors"
-              onClick={() => setIsDesktopOpen?.(!isDesktopOpen)}
-              aria-label="Toggle desktop menu"
-            >
-              <Menu className="h-5 w-5" />
-            </button>
           </>
         ) : (
           <div className="flex flex-col items-center">
-            {/* Desktop Toggle Button (Collapsed) */}
-            <button 
-              className="hidden lg:block p-1.5 rounded-md text-[var(--text-secondary)] hover:bg-[var(--bg-elevated)] transition-colors"
-              onClick={() => setIsDesktopOpen?.(!isDesktopOpen)}
-              aria-label="Toggle desktop menu"
-            >
-              <Menu className="h-5 w-5" />
-            </button>
+            {/* Logo when collapsed */}
+            <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-[var(--accent-primary)] text-white font-bold shadow-lg shadow-[var(--accent-primary)]/30">
+              T
+            </div>
           </div>
         )}
         
@@ -122,14 +109,48 @@ export function Sidebar({ isOpen = false, isDesktopOpen = true, setIsOpen, setIs
       </nav>
 
       <div className={cn("mt-auto pb-4 flex flex-col gap-4", isDesktopOpen ? "px-2" : "lg:hidden px-2")}>
-          <div className="rounded-xl bg-gradient-to-br from-[var(--accent-primary)]/10 to-transparent p-4 border border-[var(--accent-primary)]/20">
-            <h4 className="text-xs font-bold uppercase tracking-wider text-[var(--accent-primary)] mb-1">
-              Pro Tip
+          <div className="rounded-xl bg-gradient-to-br from-[var(--accent-primary)]/10 to-purple-500/10 p-4 border border-[var(--accent-primary)]/20 relative overflow-hidden group hover:border-[var(--accent-primary)]/40 transition-colors shadow-sm">
+            <div className="absolute top-0 right-0 -mt-4 -mr-4 bg-gradient-to-br from-[var(--accent-primary)] to-purple-500 rounded-full w-16 h-16 opacity-10 group-hover:scale-150 transition-transform duration-500" />
+            <h4 className="text-sm font-bold tracking-tight text-[var(--text-primary)] mb-1 flex items-center gap-1.5">
+              <Sparkles className="w-4 h-4 text-[var(--accent-primary)]" /> Upgrade to Pro
             </h4>
-            <p className="text-xs text-[var(--text-secondary)] leading-relaxed">
-              Fork a roadmap from the Explore page to customize it.
+            <p className="text-xs text-[var(--text-secondary)] leading-relaxed mb-3 relative z-10">
+              Get unlimited roadmaps and daily coins.
             </p>
+            <Button 
+              variant="primary" 
+              size="sm" 
+              className="w-full h-8 text-xs font-bold relative z-10 shadow-sm" 
+              onClick={() => {
+                setIsOpen?.(false);
+                router.push('/pro');
+              }}
+            >
+              Upgrade Now
+            </Button>
           </div>
+        </div>
+
+        {/* Desktop Toggle Button at bottom */}
+        <div className="mt-2 hidden lg:flex border-t border-[var(--border-subtle)] pt-4">
+          <button 
+            className={cn(
+              "flex items-center rounded-xl py-2.5 text-sm font-medium text-[var(--text-secondary)] hover:bg-[var(--bg-elevated)] hover:text-[var(--text-primary)] transition-all duration-200 w-full",
+              isDesktopOpen ? "px-3 justify-start" : "px-3 justify-center"
+            )}
+            onClick={() => setIsDesktopOpen?.(!isDesktopOpen)}
+            aria-label="Toggle desktop menu"
+            title="Collapse Sidebar"
+          >
+            {isDesktopOpen ? (
+              <>
+                <PanelLeftClose className="h-5 w-5 shrink-0 mr-3 text-[var(--text-tertiary)]" />
+                <span className="whitespace-nowrap transition-opacity">Collapse</span>
+              </>
+            ) : (
+              <PanelLeftOpen className="h-5 w-5 shrink-0 text-[var(--text-tertiary)]" />
+            )}
+          </button>
         </div>
     </aside>
   );

@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useRef, useEffect } from 'react';
-import { Bell, Search, LogOut, User, Shield, Menu, Coins, Sparkles } from 'lucide-react';
+import { Bell, Search, LogOut, User, Shield, Menu, Coins, Sparkles, Plus } from 'lucide-react';
 import { Avatar } from '@/shared/ui/Avatar';
 import { useAuth } from '@/features/auth/context/auth-context';
 import { useCoinBalance } from '@/features/ledger/api/queries';
@@ -101,10 +101,14 @@ export function Topbar({ onMenuClick }: TopbarProps) {
 
         {/* Coin Balance */}
         <div className="flex items-center space-x-2">
-          <div className="flex items-center bg-[var(--warning)]/10 text-[var(--warning)] border border-[var(--warning)]/20 px-3 py-1.5 rounded-full font-bold text-sm tracking-tight" title="Your Coin Balance">
+          <button 
+            className="flex items-center bg-[var(--warning)]/10 text-[var(--warning)] border border-[var(--warning)]/20 hover:bg-[var(--warning)]/20 hover:border-[var(--warning)]/40 px-3 py-1.5 rounded-full font-bold text-sm tracking-tight transition-all shadow-sm" 
+            title="Buy Coins"
+            onClick={() => router.push('/pro')}
+          >
             <Coins className="h-4 w-4 mr-1.5" />
             {coinData?.balance ?? 0}
-          </div>
+          </button>
           {user?.plan !== 'PREMIUM' && (
             <button 
               onClick={() => router.push('/pricing')}

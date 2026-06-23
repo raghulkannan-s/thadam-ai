@@ -28,6 +28,11 @@ export interface AdminUserResponse {
   role: string;
   active: boolean;
   createdAt: string;
+  coins: number;
+  roadmapCount: number;
+  forkCount: number;
+  upvotes: number;
+  downvotes: number;
 }
 
 export interface PublicUser {

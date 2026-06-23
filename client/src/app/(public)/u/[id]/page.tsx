@@ -41,7 +41,7 @@ export default function PublicProfilePage({ params }: { params: Promise<{ id: st
   return (
     <div className="min-h-screen bg-[var(--bg-base)]">
       {/* Header Banner */}
-      <div className="h-48 w-full bg-gradient-to-r from-[var(--accent-primary)] to-purple-600"></div>
+      <div className="h-48 w-full bg-[var(--accent-primary)]"></div>
       
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 -mt-24">
         <div className="bg-[var(--bg-surface)] rounded-2xl shadow-xl p-8 border border-[var(--border-subtle)] relative">

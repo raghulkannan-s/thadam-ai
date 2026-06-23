@@ -66,7 +66,7 @@ export function ForkModal({ isOpen, onClose, roadmap, onFork, onRegenerate, isFo
           </Button>
           <Button 
             variant="primary" 
-            className="flex-1 h-12 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 border-none"
+            className="flex-1 h-12 bg-[var(--accent-primary)] hover:opacity-90 border-none text-white"
             onClick={() => onRegenerate(visibility)}
             disabled={isLoading}
           >

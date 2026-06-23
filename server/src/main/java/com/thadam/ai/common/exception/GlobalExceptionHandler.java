@@ -63,6 +63,13 @@ public class GlobalExceptionHandler {
                 .body(ApiResponse.error(ex.getReason() != null ? ex.getReason() : "An unexpected error occurred."));
     }
 
+    @ExceptionHandler(org.springframework.web.servlet.resource.NoResourceFoundException.class)
+    public ResponseEntity<ApiResponse<Void>> handleNoResourceFoundException(org.springframework.web.servlet.resource.NoResourceFoundException ex) {
+        log.warn("Static Resource Not Found: {}", ex.getMessage());
+        return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                .body(ApiResponse.error("Resource not found"));
+    }
+
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ApiResponse<Void>> handleGenericException(Exception ex) {
         log.error("Internal Server Error: ", ex);

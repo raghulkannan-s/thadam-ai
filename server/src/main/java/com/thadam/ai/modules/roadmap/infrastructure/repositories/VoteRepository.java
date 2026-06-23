@@ -12,6 +12,9 @@ public interface VoteRepository extends JpaRepository<Vote, Long> {
 
     Optional<Vote> findByUserIdAndRoadmapId(Long userId, Long roadmapId);
 
+    @Query("SELECT COUNT(v) FROM Vote v WHERE v.roadmap.user.id = :userId AND v.voteType = :voteType")
+    long countByRoadmapUserIdAndVoteType(@org.springframework.data.repository.query.Param("userId") Long userId, @org.springframework.data.repository.query.Param("voteType") VoteType voteType);
+
     @Query("SELECT COUNT(v) FROM Vote v WHERE v.roadmap.id = :roadmapId AND v.voteType = :voteType")
     long countByRoadmapIdAndVoteType(Long roadmapId, VoteType voteType);
 

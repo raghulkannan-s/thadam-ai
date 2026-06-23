@@ -93,8 +93,8 @@ export default function NewRoadmapPage() {
   };
 
   return (
-    <div className="mx-auto max-w-2xl pb-20 pt-8 relative animate-fade-in-up">
-      <div className="w-full flex justify-start mb-8">
+    <div className="relative animate-fade-in-up">
+      <div className="w-full flex justify-start mb-8 absolute -top-4 -left-4 lg:-left-20">
         <Link 
           href="/community" 
           className="inline-flex items-center text-sm font-medium text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors no-underline"
@@ -103,6 +103,8 @@ export default function NewRoadmapPage() {
           Back
         </Link>
       </div>
+
+      <div className="mx-auto max-w-2xl pb-20 pt-8 relative">
 
       <div className="mb-10 text-center">
         <Badge variant="default" className="mb-4 inline-flex shadow-sm">
@@ -276,6 +278,7 @@ export default function NewRoadmapPage() {
           )}
         </div>
       </form>
+    </div>
     </div>
   );
 }

@@ -39,11 +39,12 @@ public class StripeController {
 
     @PostMapping("/create-checkout-session")
     public ResponseEntity<Map<String, String>> createCheckoutSession(
-            @AuthenticationPrincipal Long userId,
+            org.springframework.security.core.Authentication authentication,
             @RequestBody Map<String, String> request) {
         try {
-            User user = userRepository.findById(userId)
-                    .orElseThrow(() -> new RuntimeException("User not found"));
+            if (authentication == null || !(authentication.getPrincipal() instanceof User user)) {
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+            }
             
             String productType = request.get("productType");
             String url = stripeService.createCheckoutSession(user, productType);

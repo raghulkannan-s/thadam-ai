@@ -8,6 +8,7 @@ import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -23,7 +24,7 @@ import lombok.RequiredArgsConstructor;
 @RestController
 @RequestMapping("/api/admin")
 @RequiredArgsConstructor
-@PreAuthorize("hasRole('ADMIN')")
+@PreAuthorize("hasAnyRole('ADMIN', 'MODERATOR')")
 public class AdminController {
 
     private final AdminService adminService;
@@ -40,17 +41,28 @@ public class AdminController {
         return ResponseEntity.ok(ApiResponse.success(user));
     }
 
-    @DeleteMapping("/users/{id}")
-    public ResponseEntity<ApiResponse<Void>> deleteUser(@PathVariable String id) {
-        adminService.deleteUser(id);
-        return ResponseEntity.ok(ApiResponse.success(null));
+    @PreAuthorize("hasRole('ADMIN')")
+    @PostMapping("/users/{id}/blacklist")
+    public ResponseEntity<ApiResponse<AdminUserResponse>> blacklistUser(@PathVariable String id) {
+        AdminUserResponse user = adminService.blacklistUser(id);
+        return ResponseEntity.ok(ApiResponse.success(user));
     }
 
+    @PreAuthorize("hasRole('ADMIN')")
     @PatchMapping("/users/{id}/role")
     public ResponseEntity<ApiResponse<AdminUserResponse>> changeUserRole(
             @PathVariable String id,
             @Valid @RequestBody ChangeRoleRequest request) {
         AdminUserResponse user = adminService.changeUserRole(id, request);
         return ResponseEntity.ok(ApiResponse.success(user));
+    }
+
+    @PreAuthorize("hasRole('ADMIN')")
+    @PostMapping("/users/{id}/coins")
+    public ResponseEntity<ApiResponse<Void>> adjustUserCoins(
+            @PathVariable String id,
+            @Valid @RequestBody com.thadam.ai.modules.admin.core.application.dtos.CoinAdjustmentRequest request) {
+        adminService.adjustUserCoins(id, request);
+        return ResponseEntity.ok(ApiResponse.success(null));
     }
 }
