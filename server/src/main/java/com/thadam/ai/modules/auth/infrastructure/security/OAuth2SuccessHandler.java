@@ -39,6 +39,7 @@ public class OAuth2SuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
     private final RefreshTokenService refreshTokenService;
     private final AuditService auditService;
     private final OAuthCodeService oAuthCodeService;
+    private final HttpCookieOAuth2AuthorizationRequestRepository httpCookieOAuth2AuthorizationRequestRepository;
 
     @Value("${app.oauth2.frontend-redirect:http://localhost:3000/oauth2/redirect}")
     private String frontendRedirectUrl;
@@ -110,6 +111,12 @@ public class OAuth2SuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
         String authCode = oAuthCodeService.generateCode(accessToken, refreshToken.getToken());
 
         String redirectUrl = frontendRedirectUrl + "?code=" + authCode;
+        clearAuthenticationAttributes(request, response);
         getRedirectStrategy().sendRedirect(request, response, redirectUrl);
+    }
+
+    protected void clearAuthenticationAttributes(HttpServletRequest request, HttpServletResponse response) {
+        super.clearAuthenticationAttributes(request);
+        httpCookieOAuth2AuthorizationRequestRepository.removeAuthorizationRequestCookies(request, response);
     }
 }

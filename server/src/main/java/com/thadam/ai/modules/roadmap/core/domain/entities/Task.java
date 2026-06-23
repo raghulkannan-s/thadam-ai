@@ -63,4 +63,8 @@ public class Task extends BaseEntity {
 
     @Column(name = "due_date")
     private LocalDate dueDate;
+
+    @Column(name = "coin_granted", nullable = false)
+    @Builder.Default
+    private boolean coinGranted = false;
 }

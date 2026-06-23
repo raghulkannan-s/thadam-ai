@@ -272,9 +272,9 @@ function TasksVisual() {
 
 function CommunityVisual() {
   const roadmaps = [
-    { title: "Full-Stack Web Dev", author: "Sarah K.", forks: 342, gradient: "linear-gradient(135deg, #3B82F6, #8B5CF6)" },
-    { title: "Data Science Path", author: "Raj M.", forks: 218, gradient: "linear-gradient(135deg, #10B981, #3B82F6)" },
-    { title: "System Design", author: "Alex T.", forks: 156, gradient: "linear-gradient(135deg, #F59E0B, #EF4444)" },
+    { title: "Full-Stack Web Dev", author: "Sarah K.", forks: 342, gradient: "var(--accent-primary)" },
+    { title: "Data Science Path", author: "Raj M.", forks: 218, gradient: "var(--accent-primary)" },
+    { title: "System Design", author: "Alex T.", forks: 156, gradient: "var(--accent-primary)" },
   ];
 
   return (

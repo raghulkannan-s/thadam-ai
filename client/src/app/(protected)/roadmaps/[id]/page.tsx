@@ -10,9 +10,11 @@ import { ErrorState } from '@/shared/ui/ErrorState';
 import { toast } from 'sonner';
 
 import { useRoadmap, useRoadmapMilestones, useRoadmapTasks } from '@/features/roadmap/api/queries';
-import { useForkRoadmap, useVoteRoadmap, useUpdateTaskStatus } from '@/features/roadmap/api/mutations';
+import { useAuth } from '@/features/auth/context/auth-context';
+import { useForkRoadmap, useVoteRoadmap, useUpdateTaskStatus, useUpdateRoadmap, useGenerateRoadmap } from '@/features/roadmap/api/mutations';
 import { useRouter } from 'next/navigation';
 import { TaskViewModal } from '@/features/roadmap/components/TaskViewModal';
+import { ForkModal } from '@/features/roadmap/components/ForkModal';
 import { TaskResponse } from '@/lib/types';
 
 export default function RoadmapContentPage({ params }: { params: Promise<{ id: string }> }) {
@@ -28,10 +30,17 @@ export default function RoadmapContentPage({ params }: { params: Promise<{ id: s
   const { mutate: forkRoadmap, isPending: isForking } = useForkRoadmap();
   const { mutate: voteRoadmap, isPending: isVoting } = useVoteRoadmap();
   const { mutate: updateTask, isPending: isUpdatingTask } = useUpdateTaskStatus();
+  const { mutate: updateRoadmap, isPending: isUpdatingRoadmap } = useUpdateRoadmap();
+  const { mutate: generateRoadmap, isPending: isGenerating } = useGenerateRoadmap();
+  const { user } = useAuth();
+
+  const isOwner = user?.id?.toString() === roadmap?.userId?.toString();
+  const isForked = roadmap?.forkedFromId != null;
 
   // Task Modal State
   const [activeTask, setActiveTask] = useState<TaskResponse | null>(null);
   const [expandedMilestones, setExpandedMilestones] = useState<Record<number, boolean>>({});
+  const [isForkModalOpen, setIsForkModalOpen] = useState(false);
 
   const tasks = tasksData?.content || [];
   
@@ -100,9 +109,27 @@ export default function RoadmapContentPage({ params }: { params: Promise<{ id: s
     }
   };
 
-  const handleFork = () => {
-    forkRoadmap(roadmapId, {
+  const handleFork = (visibility: string) => {
+    forkRoadmap({ roadmapId, visibility }, {
       onSuccess: (newRoadmap) => {
+        setIsForkModalOpen(false);
+        router.push(`/roadmaps/${newRoadmap.id}`);
+      }
+    });
+  };
+
+  const handleRegenerate = (visibility: string) => {
+    if (!roadmap) return;
+    generateRoadmap({
+      prompt: roadmap.title, // or any context we want, since it's a regeneration of the topic
+      difficulty: roadmap.difficulty,
+      durationWeeks: roadmap.durationWeeks,
+      estimatedHoursPerDay: roadmap.estimatedHoursPerDay,
+      visibility: visibility,
+      isRegeneration: true
+    }, {
+      onSuccess: (newRoadmap) => {
+        setIsForkModalOpen(false);
         router.push(`/roadmaps/${newRoadmap.id}`);
       }
     });
@@ -110,6 +137,12 @@ export default function RoadmapContentPage({ params }: { params: Promise<{ id: s
 
   const handleVote = (type: "UPVOTE" | "DOWNVOTE") => {
     voteRoadmap({ roadmapId, type });
+  };
+
+  const handleToggleVisibility = () => {
+    if (!roadmap || !isOwner) return;
+    const newVisibility = roadmap.visibility === "PUBLIC" ? "PRIVATE" : "PUBLIC";
+    updateRoadmap({ id: roadmapId, data: { visibility: newVisibility } });
   };
 
   const handleShare = async () => {
@@ -135,11 +168,11 @@ export default function RoadmapContentPage({ params }: { params: Promise<{ id: s
   };
   
   return (
-    <div className="mx-auto max-w-5xl pb-20 pt-6">
+    <div className="mx-auto max-w-5xl px-4 sm:px-6 pb-20 pt-6">
       
       {/* SECTION 1: Rich Header Banner */}
       <div className="mb-12 overflow-hidden rounded-3xl border border-[var(--border-subtle)] bg-gradient-to-br from-[var(--bg-surface)] to-[var(--bg-elevated)] shadow-xl relative">
-        <div className="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-[var(--accent-primary)] to-purple-500"></div>
+        <div className="absolute top-0 left-0 w-full h-2 bg-[var(--accent-primary)]"></div>
         <div className="p-8 sm:p-10">
           <div className="flex flex-col lg:flex-row gap-8 justify-between">
             <div className="flex-1">
@@ -148,9 +181,21 @@ export default function RoadmapContentPage({ params }: { params: Promise<{ id: s
                   Interactive Journey
                 </Badge>
                 <Badge variant="outline">Intermediate</Badge>
-                <Badge variant={roadmap.visibility === "PUBLIC" ? "success" : "outline"}>
-                  {roadmap.visibility}
-                </Badge>
+                {isOwner ? (
+                  <button 
+                    onClick={handleToggleVisibility} 
+                    disabled={isUpdatingRoadmap}
+                    className="transition-opacity hover:opacity-80 disabled:opacity-50"
+                  >
+                    <Badge variant={roadmap.visibility === "PUBLIC" ? "success" : "outline"} className="cursor-pointer">
+                      {roadmap.visibility}
+                    </Badge>
+                  </button>
+                ) : (
+                  <Badge variant={roadmap.visibility === "PUBLIC" ? "success" : "outline"}>
+                    {roadmap.visibility}
+                  </Badge>
+                )}
               </div>
               <h1 className="text-3xl sm:text-4xl font-black tracking-tight mb-4 text-[var(--text-primary)]">
                 {roadmap.title}
@@ -177,58 +222,66 @@ export default function RoadmapContentPage({ params }: { params: Promise<{ id: s
               </div>
             </div>
 
-            <div className="flex flex-col gap-6 lg:min-w-[280px]">
-              {/* Progress Box */}
-              <div className="bg-[var(--bg-base)] rounded-2xl p-5 border border-[var(--border-subtle)]">
-                <div className="flex justify-between items-end mb-2">
-                  <span className="text-sm font-semibold text-[var(--text-secondary)]">Your Progress</span>
-                  <span className="text-2xl font-black text-green-500">{completionRateNum}%</span>
+            {isOwner && (
+              <div className="flex flex-col gap-6 lg:min-w-[280px]">
+                {/* Progress Box */}
+                <div className="bg-[var(--bg-base)] rounded-2xl p-5 border border-[var(--border-subtle)]">
+                  <div className="flex justify-between items-end mb-2">
+                    <span className="text-sm font-semibold text-[var(--text-secondary)]">Your Progress</span>
+                    <span className="text-2xl font-black text-green-500">{completionRateNum}%</span>
+                  </div>
+                  <div className="w-full bg-[var(--bg-surface)] rounded-full h-3 overflow-hidden border border-[var(--border-subtle)]">
+                    <div 
+                      className="bg-gradient-to-r from-green-400 to-green-600 h-full rounded-full transition-all duration-1000 ease-out" 
+                      style={{ width: `${completionRateNum}%` }}
+                    />
+                  </div>
+                  <p className="text-xs text-[var(--text-tertiary)] mt-3 text-right">
+                    {completedCount} of {tasks.length} tasks completed
+                  </p>
                 </div>
-                <div className="w-full bg-[var(--bg-surface)] rounded-full h-3 overflow-hidden border border-[var(--border-subtle)]">
-                  <div 
-                    className="bg-gradient-to-r from-green-400 to-green-600 h-full rounded-full transition-all duration-1000 ease-out" 
-                    style={{ width: `${completionRateNum}%` }}
-                  />
-                </div>
-                <p className="text-xs text-[var(--text-tertiary)] mt-3 text-right">
-                  {completedCount} of {tasks.length} tasks completed
-                </p>
-              </div>
 
-              <Button 
-                variant="primary" 
-                size="lg" 
-                className="w-full h-14 text-lg font-bold shadow-lg shadow-[var(--accent-primary)]/20 group"
-                onClick={handleStartContinue}
-              >
-                <Play className="mr-2 h-6 w-6 transition-transform group-hover:scale-110" /> 
-                {completionRateNum === 0 ? 'Start Learning' : completionRateNum === 100 ? 'Review Journey' : 'Continue Learning'}
-              </Button>
-            </div>
+                <Button 
+                  variant="primary" 
+                  size="lg" 
+                  className="w-full h-14 text-lg font-bold shadow-lg shadow-[var(--accent-primary)]/20 group"
+                  onClick={handleStartContinue}
+                >
+                  <Play className="mr-2 h-6 w-6 transition-transform group-hover:scale-110" /> 
+                  {completionRateNum === 0 ? 'Start Learning' : completionRateNum === 100 ? 'Review Journey' : 'Continue Learning'}
+                </Button>
+              </div>
+            )}
           </div>
         </div>
         
         {/* Footer actions of Banner */}
-        <div className="bg-[var(--bg-base)] border-t border-[var(--border-subtle)] p-4 px-8 flex flex-wrap gap-4 items-center justify-between">
+        <div className="bg-[var(--bg-base)] border-t border-[var(--border-subtle)] p-4 sm:px-8 flex flex-col sm:flex-row flex-wrap gap-4 items-start sm:items-center justify-between">
           <div className="flex items-center gap-4 text-sm text-[var(--text-tertiary)]">
              <div className="flex items-center gap-1.5"><Users className="h-4 w-4" /> 124 Learners</div>
              <div className="flex items-center gap-1.5"><GitFork className="h-4 w-4" /> {roadmap.forkedFromId ? 'Forked' : 'Original'}</div>
           </div>
-          <div className="flex items-center gap-3">
-             <Button variant="ghost" size="md" onClick={() => handleVote("UPVOTE")} disabled={isVoting} className={roadmap.userVote === 'UPVOTE' ? 'text-green-600 bg-green-500/20 font-semibold ring-1 ring-green-500/50' : 'hover:text-green-600 hover:bg-green-500/10'}>
-               <ArrowUpCircle className="mr-2 h-5 w-5" strokeWidth={roadmap.userVote === 'UPVOTE' ? 2.5 : 2} /> 
-               {roadmap.upvoteCount > 0 ? roadmap.upvoteCount : 'Upvote'}
-             </Button>
-             <Button variant="ghost" size="md" onClick={() => handleVote("DOWNVOTE")} disabled={isVoting} className={roadmap.userVote === 'DOWNVOTE' ? 'text-red-600 bg-red-500/20 font-semibold ring-1 ring-red-500/50' : 'hover:text-red-600 hover:bg-red-500/10'}>
-               <ArrowUpCircle className="mr-2 h-5 w-5 rotate-180" strokeWidth={roadmap.userVote === 'DOWNVOTE' ? 2.5 : 2} /> 
-               {roadmap.downvoteCount > 0 ? roadmap.downvoteCount : 'Downvote'}
-             </Button>
+          <div className="flex flex-wrap items-center gap-3">
+             {!isForked && (
+               <>
+                 <Button variant="ghost" size="md" onClick={() => handleVote("UPVOTE")} disabled={isVoting} className={roadmap.userVote === 'UPVOTE' ? 'text-green-600 bg-green-500/20 font-semibold ring-1 ring-green-500/50' : 'hover:text-green-600 hover:bg-green-500/10'}>
+                   <ArrowUpCircle className="mr-2 h-5 w-5" strokeWidth={roadmap.userVote === 'UPVOTE' ? 2.5 : 2} /> 
+                   {roadmap.upvoteCount > 0 ? roadmap.upvoteCount : 'Upvote'}
+                 </Button>
+                 <Button variant="ghost" size="md" onClick={() => handleVote("DOWNVOTE")} disabled={isVoting} className={roadmap.userVote === 'DOWNVOTE' ? 'text-red-600 bg-red-500/20 font-semibold ring-1 ring-red-500/50' : 'hover:text-red-600 hover:bg-red-500/10'}>
+                   <ArrowUpCircle className="mr-2 h-5 w-5 rotate-180" strokeWidth={roadmap.userVote === 'DOWNVOTE' ? 2.5 : 2} /> 
+                   {roadmap.downvoteCount > 0 ? roadmap.downvoteCount : 'Downvote'}
+                 </Button>
+               </>
+             )}
              <Button variant="ghost" size="md" onClick={handleShare}>
                <Share2 className="mr-2 h-5 w-5" /> Share
              </Button>
-             <Button variant="outline" size="md" onClick={handleFork} disabled={isForking}>
-               <GitFork className="mr-2 h-5 w-5" /> Fork {roadmap.forkCount > 0 && `(${roadmap.forkCount})`}
-             </Button>
+             {!isForked && (
+               <Button variant="outline" size="md" onClick={() => setIsForkModalOpen(true)} disabled={isForking || isGenerating}>
+                 <GitFork className="mr-2 h-5 w-5" /> Fork {roadmap.forkCount > 0 && `(${roadmap.forkCount})`}
+               </Button>
+             )}
           </div>
         </div>
       </div>
@@ -342,6 +395,17 @@ export default function RoadmapContentPage({ params }: { params: Promise<{ id: s
          hasNext={hasNext}
          hasPrevious={hasPrevious}
          isUpdating={isUpdatingTask}
+         isReadOnly={!isOwner}
+      />
+
+      <ForkModal
+        isOpen={isForkModalOpen}
+        onClose={() => setIsForkModalOpen(false)}
+        roadmap={roadmap as any}
+        onFork={handleFork}
+        onRegenerate={handleRegenerate}
+        isForking={isForking}
+        isRegenerating={isGenerating}
       />
     </div>
   );

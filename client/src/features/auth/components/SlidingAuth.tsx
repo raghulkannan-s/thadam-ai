@@ -168,7 +168,7 @@ export function SlidingAuth({ defaultMode }: { defaultMode: "login" | "register"
         <div className="absolute inset-0 bg-[var(--bg-base)]" />
         <div className="absolute top-0 left-0 w-full h-full bg-[url('/noise.png')] opacity-20 mix-blend-overlay" />
         <div className="absolute top-1/4 left-1/4 w-[500px] h-[500px] bg-[var(--accent-primary)]/10 rounded-full blur-[100px] animate-pulse" />
-        <div className="absolute bottom-1/4 right-1/4 w-[500px] h-[500px] bg-purple-500/10 rounded-full blur-[100px] animate-pulse" style={{ animationDelay: '2s' }} />
+        <div className="absolute bottom-1/4 right-1/4 w-[500px] h-[500px] bg-[var(--accent-primary)]/10 rounded-full blur-[100px] animate-pulse" style={{ animationDelay: '2s' }} />
       </div>
 
       {/* --- CENTERED GLASSMORPHIC CONTAINER --- */}

@@ -74,7 +74,7 @@ export default function NewRoadmapPage() {
     });
     
     generate(
-      { prompt, difficulty, durationWeeks, estimatedHoursPerDay, visibility },
+      { prompt, difficulty, durationWeeks, estimatedHoursPerDay, visibility, isRegeneration: false },
       {
         onSuccess: (roadmap) => {
           const id = roadmap.id;
@@ -93,14 +93,18 @@ export default function NewRoadmapPage() {
   };
 
   return (
-    <div className="mx-auto max-w-2xl pb-20 pt-8 relative animate-fade-in-up">
-      <Link 
-        href="/community" 
-        className="inline-flex items-center text-sm font-medium text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors mb-8 no-underline"
-      >
-        <ArrowLeft className="mr-1.5 h-4 w-4" />
-        Back
-      </Link>
+    <div className="relative animate-fade-in-up">
+      <div className="w-full flex justify-start mb-8 absolute -top-4 -left-4 lg:-left-20">
+        <Link 
+          href="/community" 
+          className="inline-flex items-center text-sm font-medium text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors no-underline"
+        >
+          <ArrowLeft className="mr-1.5 h-4 w-4" />
+          Back
+        </Link>
+      </div>
+
+      <div className="mx-auto max-w-2xl pb-20 pt-8 relative">
 
       <div className="mb-10 text-center">
         <Badge variant="default" className="mb-4 inline-flex shadow-sm">
@@ -186,7 +190,10 @@ export default function NewRoadmapPage() {
               max="24"
               step="0.5"
               value={estimatedHoursPerDay}
-              onChange={(e) => setEstimatedHoursPerDay(Number(e.target.value))}
+              onChange={(e) => {
+                const val = Number(e.target.value);
+                setEstimatedHoursPerDay(val > 24 ? 24 : val);
+              }}
               disabled={isPending}
               placeholder="e.g. 1.5"
               className="w-full h-12 px-4 rounded-[var(--radius-md)] border border-[var(--border-default)] bg-[var(--bg-surface)] text-[var(--text-primary)] text-sm focus:outline-none focus:ring-2 focus:ring-[var(--accent-primary)] transition-all shadow-sm"
@@ -271,6 +278,7 @@ export default function NewRoadmapPage() {
           )}
         </div>
       </form>
+    </div>
     </div>
   );
 }

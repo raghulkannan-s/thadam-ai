@@ -20,6 +20,8 @@ public class OAuth2FailureHandler extends SimpleUrlAuthenticationFailureHandler 
 
     private static final Logger log = LoggerFactory.getLogger(OAuth2FailureHandler.class);
 
+    private final HttpCookieOAuth2AuthorizationRequestRepository httpCookieOAuth2AuthorizationRequestRepository;
+
     @Value("${app.oauth2.frontend-redirect:http://localhost:3000/oauth2/redirect}")
     private String frontendRedirectUrl;
 
@@ -49,6 +51,7 @@ public class OAuth2FailureHandler extends SimpleUrlAuthenticationFailureHandler 
                 errorCode, errorMessage != null ? errorMessage : "unknown", MDC.get("correlationId"));
 
         String redirectUrl = frontendRedirectUrl + "?error=" + errorCode;
+        httpCookieOAuth2AuthorizationRequestRepository.removeAuthorizationRequestCookies(request, response);
         getRedirectStrategy().sendRedirect(request, response, redirectUrl);
     }
 }

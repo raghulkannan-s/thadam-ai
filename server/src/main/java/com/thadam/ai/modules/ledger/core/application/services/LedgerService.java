@@ -50,7 +50,7 @@ public class LedgerService {
         }
 
         int signedAmount = switch (request.transactionType()) {
-            case EARNED, REFUND, ADMIN_ADJUSTMENT -> request.amount();
+            case EARNED, REFUND, ADMIN_ADJUSTMENT, PURCHASED -> request.amount();
             case SPENT -> -request.amount();
         };
         int balanceAfter = currentBalance + signedAmount;
@@ -99,6 +99,15 @@ public class LedgerService {
         return userRepository.findById(userId)
                 .map(User::getCoins)
                 .orElse(0);
+    }
+
+    public boolean hasEarnedCoinForReference(Long userId, String referenceType, Long referenceId) {
+        return coinTransactionRepository.existsByUserIdAndTransactionTypeAndReferenceTypeAndReferenceId(
+                userId, 
+                com.thadam.ai.modules.ledger.core.domain.enums.TransactionType.EARNED, 
+                referenceType, 
+                referenceId
+        );
     }
 
     private CoinTransactionResponse toResponse(CoinTransaction t) {

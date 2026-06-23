@@ -165,7 +165,7 @@ function JourneyScene({ scrollYProgress, takingOff }: { scrollYProgress: any, ta
     }
   });
 
-  const nodes = 4;
+  const nodes = 6;
   const distance = 200;
   const step = distance / (nodes - 1);
 

@@ -63,8 +63,8 @@ export default function PreviewRoadmapPage({ params }: { params: Promise<{ id: s
       toast.error("Please provide instructions for the AI.");
       return;
     }
-    if (coinData && coinData.balance < 10) {
-      toast.error("Insufficient coins. Regenerating costs 10 coins.");
+    if (coinData && coinData.balance < 5) {
+      toast.error("Insufficient coins. Regeneration requires 5 coins.");
       return;
     }
     
@@ -81,7 +81,8 @@ export default function PreviewRoadmapPage({ params }: { params: Promise<{ id: s
       difficulty: roadmap.difficulty,
       durationWeeks: roadmap.durationWeeks,
       estimatedHoursPerDay: roadmap.estimatedHoursPerDay,
-      visibility: roadmap.visibility || 'PUBLIC'
+      visibility: roadmap.visibility || 'PUBLIC',
+      isRegeneration: true
     }, {
       onSuccess: (newRoadmap) => {
         setIsRegenerating(false);
@@ -167,7 +168,7 @@ export default function PreviewRoadmapPage({ params }: { params: Promise<{ id: s
         ) : (
           <div className="p-8 bg-[var(--bg-base)] border-t border-[var(--border-subtle)]">
              <h3 className="text-lg font-bold mb-2 flex items-center"><Sparkles className="w-4 h-4 mr-2 text-[var(--accent-primary)]"/> What would you like to change?</h3>
-             <p className="text-sm text-[var(--text-secondary)] mb-4">Provide precise instructions for the AI to redesign this roadmap. This costs 10 coins.</p>
+             <p className="text-sm text-[var(--text-secondary)] mb-4">Provide precise instructions for the AI to redesign this roadmap. This costs 5 Coins.</p>
              <textarea
                className="w-full p-4 rounded-[var(--radius-md)] border border-[var(--border-default)] bg-[var(--bg-surface)] text-[var(--text-primary)] placeholder-[var(--text-tertiary)] text-sm focus:outline-none focus:ring-2 focus:ring-[var(--accent-primary)] focus:border-transparent transition-all shadow-sm resize-none mb-4"
                rows={3}
@@ -177,11 +178,11 @@ export default function PreviewRoadmapPage({ params }: { params: Promise<{ id: s
                disabled={isGenerating}
                autoFocus
              />
-             <div className="flex justify-end gap-3">
-               <Button variant="outline" onClick={() => setIsRegenerating(false)} disabled={isGenerating}>Cancel</Button>
+             <div className="flex flex-wrap gap-3 justify-end">
+               <Button variant="ghost" onClick={() => setIsRegenerating(false)} disabled={isGenerating}>Cancel</Button>
                <Button variant="primary" onClick={handleRegenerate} disabled={isGenerating || !additionalContext.trim()}>
                  {isGenerating ? <Spinner size={16} /> : <RotateCcw className="w-4 h-4 mr-2" />}
-                 Regenerate (10 Coins)
+                 Regenerate (5 Coins)
                </Button>
              </div>
           </div>

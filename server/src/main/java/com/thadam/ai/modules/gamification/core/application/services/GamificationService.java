@@ -41,21 +41,6 @@ public class GamificationService {
     public void handleTaskCompleted(TaskCompletedEvent event) {
         updateStreak(event.userId());
         checkAchievements(event.userId(), "TASK_COMPLETED");
-        
-        // Award 10 coins for completing a task
-        try {
-            User user = userRepository.findById(event.userId()).orElseThrow();
-            ledgerService.addTransaction(user, new CoinTransactionRequest(
-                10,
-                TransactionType.EARNED,
-                "Task Completed",
-                "TASK_COMPLETION",
-                event.taskId()
-            ));
-            log.info("Awarded 10 coins to user {} for completing task {}", event.userId(), event.taskId());
-        } catch (Exception e) {
-            log.error("Failed to award coins for task completion. User: {}, Task: {}", event.userId(), event.taskId(), e);
-        }
     }
 
     @EventListener

@@ -39,10 +39,19 @@ public interface RoadmapRepository extends JpaRepository<Roadmap, Long> {
 
     boolean existsByForkedFromIdAndUserId(Long forkedFromId, Long userId);
 
+    @Query("SELECT COUNT(r) FROM Roadmap r WHERE r.forkedFrom.user.id = :userId")
+    long countForksReceivedByUserId(@org.springframework.data.repository.query.Param("userId") Long userId);
+
+    long countByUserIdAndForkedFromIsNotNull(Long userId);
+
     @Query("SELECT r.forkedFrom.id, COUNT(r) FROM Roadmap r WHERE r.forkedFrom.id IN :roadmapIds GROUP BY r.forkedFrom.id")
     java.util.List<Object[]> countForksByRoadmapIdIn(@org.springframework.data.repository.query.Param("roadmapIds") java.util.List<Long> roadmapIds);
 
     @org.springframework.data.jpa.repository.Modifying
     @Query("UPDATE Roadmap r SET r.viewCount = r.viewCount + 1 WHERE r.id = :id")
     void incrementViewCount(@org.springframework.data.repository.query.Param("id") Long id);
+
+    @org.springframework.data.jpa.repository.Modifying
+    @Query("UPDATE Roadmap r SET r.visibility = :visibility WHERE r.user.id = :userId")
+    void updateVisibilityByUserId(@org.springframework.data.repository.query.Param("userId") Long userId, @org.springframework.data.repository.query.Param("visibility") RoadmapVisibility visibility);
 }

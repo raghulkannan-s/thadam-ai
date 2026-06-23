@@ -8,8 +8,8 @@ export function useForkRoadmap() {
 
 
   return useMutation({
-    mutationFn: async (roadmapId: string) => {
-      const res = await apiFetch<RoadmapResponse>(`/api/roadmaps/${roadmapId}/fork`, {
+    mutationFn: async ({ roadmapId, visibility }: { roadmapId: string, visibility: string }) => {
+      const res = await apiFetch<RoadmapResponse>(`/api/roadmaps/${roadmapId}/fork?visibility=${visibility}`, {
         method: "POST",
       });
       return res.data;
@@ -75,7 +75,7 @@ export function useGenerateRoadmap() {
 
 
   return useMutation({
-    mutationFn: async (request: { prompt: string; difficulty: string; durationWeeks: number; estimatedHoursPerDay: number; visibility: string }) => {
+    mutationFn: async (request: { prompt: string; difficulty: string; durationWeeks: number; estimatedHoursPerDay: number; visibility: string; isRegeneration?: boolean }) => {
       const res = await apiFetch<RoadmapResponse>("/api/roadmaps/generate", {
         method: "POST",
         body: JSON.stringify(request),
@@ -111,6 +111,27 @@ export function useUpdateRoadmap() {
     },
     onError: (error: Error) => {
       toast.error(error.message || "Failed to update roadmap.");
+    },
+  });
+}
+
+export function useVerifyUser() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({ userId, isReal }: { userId: string; isReal: boolean }) => {
+      const res = await apiFetch(`/api/user/public/${userId}/verify`, {
+        method: "POST",
+        body: JSON.stringify({ isReal }),
+      });
+      return res.data;
+    },
+    onSuccess: (_, variables) => {
+      toast.success("Verification vote recorded!");
+      queryClient.invalidateQueries({ queryKey: ["user", "public", variables.userId] });
+    },
+    onError: (error: Error) => {
+      toast.error(error.message || "Failed to submit verification vote.");
     },
   });
 }

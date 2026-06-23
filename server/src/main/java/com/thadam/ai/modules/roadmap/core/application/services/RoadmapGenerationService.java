@@ -37,6 +37,9 @@ public class RoadmapGenerationService {
 
     private static final Logger log = LoggerFactory.getLogger(RoadmapGenerationService.class);
 
+    private static final int GENERATION_COST = 10;
+    private static final int REGENERATION_COST = 5;
+
     private final GeminiClient geminiClient;
     private final ObjectMapper objectMapper;
     private final RoadmapRepository roadmapRepository;
@@ -55,15 +58,16 @@ public class RoadmapGenerationService {
                 user.getId(), request.prompt().length(), MDC.get("correlationId"));
 
         try {
+            int cost = Boolean.TRUE.equals(request.isRegeneration()) ? 3 : 10;
             long currentBalance = ledgerService.getBalance(user.getId()).balance();
-            if (currentBalance < 10) {
-                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Insufficient coins. Generating a roadmap requires 10 coins.");
+            if (currentBalance < cost) {
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Insufficient coins. This operation requires " + cost + " coins.");
             }
 
             ledgerService.addTransaction(user, new CoinTransactionRequest(
-                    10,
+                    cost,
                     TransactionType.SPENT,
-                    "AI Roadmap Generation",
+                    Boolean.TRUE.equals(request.isRegeneration()) ? "AI Roadmap Regeneration" : "AI Roadmap Generation",
                     "ROADMAP_GENERATION",
                     null
             ));
@@ -113,8 +117,9 @@ public class RoadmapGenerationService {
             return roadmapService.getRoadmapById(roadmap.getPublicId(), user);
         } catch (Exception e) {
             try {
+                int cost = Boolean.TRUE.equals(request.isRegeneration()) ? 3 : 10;
                 ledgerService.addTransaction(user, new CoinTransactionRequest(
-                        10,
+                        cost,
                         TransactionType.REFUND,
                         "Refund for failed AI Roadmap Generation",
                         "ROADMAP_GENERATION",
@@ -128,7 +133,7 @@ public class RoadmapGenerationService {
                     user.getId(), duration, e.getMessage(), MDC.get("correlationId"));
             throw new ResponseStatusException(
                     HttpStatus.INTERNAL_SERVER_ERROR,
-                    "Failed to generate roadmap. Please try again with a simpler prompt.", e);
+                    "Failed to generate roadmap. Please try again or provide more specific details.", e);
         } finally {
             MDC.remove("userId");
         }

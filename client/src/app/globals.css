@@ -28,16 +28,16 @@
 }
 
 [data-theme="dark"] {
-  --bg-base: #0F172A;
-  --bg-surface: #1E293B;
-  --bg-elevated: #334155;
+  --bg-base: #09090B;
+  --bg-surface: #18181B;
+  --bg-elevated: #27272A;
   
-  --border-subtle: #1E293B;
-  --border-default: #334155;
+  --border-subtle: #27272A;
+  --border-default: #3F3F46;
   
-  --text-primary: #F8FAFC;
-  --text-secondary: #94A3B8;
-  --text-tertiary: #64748B;
+  --text-primary: #FAFAFA;
+  --text-secondary: #A1A1AA;
+  --text-tertiary: #71717A;
   
   --accent-primary: #3B82F6;
   --accent-secondary: #2563EB;

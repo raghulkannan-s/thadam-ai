@@ -120,7 +120,8 @@ public class AuthController {
                     user.getEmail(),
                     user.getRole(),
                     user.getAvatarUrl(),
-                    user.getCoins());
+                    user.getCoins(),
+                    user.getPlan());
 
             return ResponseEntity.ok(
                     new ApiResponse<>(true, "Current User", response));

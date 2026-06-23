@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { Search, Flame, Clock, GitFork, ArrowUpCircle } from 'lucide-react';
 import { CommunityRoadmapResponse } from '@/lib/types';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { Card, CardContent, CardFooter } from '@/shared/ui/Card';
 import { Badge } from '@/shared/ui/Badge';
 import { Button } from '@/shared/ui/Button';
@@ -21,8 +21,11 @@ type FilterType = (typeof filters)[number];
 
 export default function CommunityPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const initialQuery = searchParams.get('q') || '';
+  
   const [activeFilter, setActiveFilter] = useState<FilterType>('Trending');
-  const [searchQuery, setSearchQuery] = useState('');
+  const [searchQuery, setSearchQuery] = useState(initialQuery);
   const debouncedSearch = useDebounce(searchQuery, 300);
   
   const { data: trendingData, isLoading: isTrendingLoading, isError: isTrendingError, refetch: refetchTrending } = useTrendingRoadmaps();

@@ -4,8 +4,10 @@ import java.util.List;
 
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
@@ -14,6 +16,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.thadam.ai.common.dto.ApiResponse;
+import com.thadam.ai.modules.auth.core.domain.entities.User;
+import com.thadam.ai.modules.user.core.application.dtos.UserVerificationRequest;
 import com.thadam.ai.modules.user.core.application.dtos.CreateUserRequest;
 import com.thadam.ai.modules.user.core.application.dtos.CreateUserResponse;
 import com.thadam.ai.modules.user.core.application.dtos.PublicUserResponse;
@@ -41,6 +45,17 @@ public class UserController {
                 new ApiResponse<>(true, "User created successfully", response));
     }
 
+    @PatchMapping("/me")
+    public ResponseEntity<ApiResponse<UserResponse>> updateMyProfile(
+            @AuthenticationPrincipal User user,
+            @Valid @RequestBody UpdateUserRequest request) {
+
+        UserResponse response = userService.updateUser(user.getPublicId(), request);
+
+        return ResponseEntity.ok(
+                new ApiResponse<>(true, "Profile updated successfully", response));
+    }
+
     @GetMapping("/{id}")
     public ResponseEntity<ApiResponse<UserResponse>> getUserById(@PathVariable String id) {
 
@@ -54,6 +69,20 @@ public class UserController {
     public ResponseEntity<ApiResponse<List<PublicUserResponse>>> getPublicUsers() {
         List<PublicUserResponse> users = userService.getPublicUsers();
         return ResponseEntity.ok(ApiResponse.success(users));
+    }
+
+    @GetMapping("/public/{id}")
+    public ResponseEntity<ApiResponse<PublicUserResponse>> getPublicUserById(@PathVariable String id) {
+        PublicUserResponse user = userService.getPublicUserById(id);
+        return ResponseEntity.ok(ApiResponse.success(user));
+    }
+
+    @PostMapping("/public/{id}/verify")
+    public ResponseEntity<ApiResponse<Void>> verifyUser(
+            @PathVariable String id,
+            @RequestBody UserVerificationRequest request) {
+        userService.verifyUser(id, request.isReal());
+        return ResponseEntity.ok(ApiResponse.success(null));
     }
 
     @GetMapping

@@ -7,5 +7,10 @@ public record AdminUserResponse(
     String name,
     String email,
     Role role,
-    boolean active
+    boolean active,
+    long coins,
+    long roadmapCount,
+    long forkCount,
+    long upvotes,
+    long downvotes
 ) {}

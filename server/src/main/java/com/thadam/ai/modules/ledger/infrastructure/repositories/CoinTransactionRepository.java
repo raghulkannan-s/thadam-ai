@@ -17,4 +17,11 @@ public interface CoinTransactionRepository extends JpaRepository<CoinTransaction
     Optional<Integer> getBalanceByUserId(Long userId);
 
     Optional<CoinTransaction> findTopByUserIdOrderByCreatedAtDesc(Long userId);
+
+    boolean existsByUserIdAndTransactionTypeAndReferenceTypeAndReferenceId(
+        Long userId, 
+        com.thadam.ai.modules.ledger.core.domain.enums.TransactionType transactionType, 
+        String referenceType, 
+        Long referenceId
+    );
 }
