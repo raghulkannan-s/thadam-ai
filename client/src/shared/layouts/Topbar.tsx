@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useRef, useEffect } from 'react';
-import { Bell, Search, LogOut, User, Shield, Menu, Coins } from 'lucide-react';
+import { Bell, Search, LogOut, User, Shield, Menu, Coins, Sparkles } from 'lucide-react';
 import { Avatar } from '@/shared/ui/Avatar';
 import { useAuth } from '@/features/auth/context/auth-context';
 import { useCoinBalance } from '@/features/ledger/api/queries';
@@ -11,12 +11,18 @@ import { toast } from 'sonner';
 import { useQueryClient } from '@tanstack/react-query';
 import { ThemeToggle } from '@/shared/theme/ThemeToggle';
 
-export function Topbar({ onMenuClick, onDesktopMenuClick }: { onMenuClick?: () => void; onDesktopMenuClick?: () => void }) {
+interface TopbarProps {
+  onMenuClick?: () => void;
+}
+
+export function Topbar({ onMenuClick }: TopbarProps) {
   const { user, logout } = useAuth();
   const router = useRouter();
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
+  const [searchQuery, setSearchQuery] = useState('');
+  
   const [ringing, setRinging] = useState(false);
   const [bellClicks, setBellClicks] = useState(0);
   
@@ -32,8 +38,7 @@ export function Topbar({ onMenuClick, onDesktopMenuClick }: { onMenuClick?: () =
     } else if (bellClicks === 2) {
       toast.info("Stop ringing it, there are no notifications yet! 😂");
     } else if (bellClicks === 5) {
-      toast.success("Okay, okay, take 5 free coins for your persistence! 🪙");
-      queryClient.setQueryData(['ledger', 'balance'], (old: any) => old ? { ...old, balance: old.balance + 5 } : { balance: 5, userId: user?.id || 0 });
+      toast.success("Okay, okay, you're persistent! 🪙");
     }
     
     setTimeout(() => setRinging(false), 800);
@@ -70,13 +75,6 @@ export function Topbar({ onMenuClick, onDesktopMenuClick }: { onMenuClick?: () =
         >
           <Menu className="h-5 w-5" />
         </button>
-        <button 
-          onClick={onDesktopMenuClick}
-          className="hidden lg:block mr-3 p-1.5 -ml-1.5 rounded-md text-[var(--text-secondary)] hover:bg-[var(--bg-elevated)] transition-colors"
-          aria-label="Toggle desktop menu"
-        >
-          <Menu className="h-5 w-5" />
-        </button>
         <div className="relative w-full hidden sm:block">
           <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
             <Search className="h-4 w-4 text-[var(--text-tertiary)]" />
@@ -85,8 +83,13 @@ export function Topbar({ onMenuClick, onDesktopMenuClick }: { onMenuClick?: () =
             type="text"
             className="block w-full rounded-full border border-[var(--border-subtle)] bg-[var(--bg-elevated)] py-2 pl-10 pr-4 text-sm text-[var(--text-primary)] placeholder-[var(--text-tertiary)] transition-all focus:border-[var(--accent-primary)] focus:outline-none focus:ring-1 focus:ring-[var(--accent-primary)]"
             placeholder="Search roadmaps, creators..."
-            onFocus={() => router.push('/community')}
-            readOnly
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' && searchQuery.trim()) {
+                router.push(`/community?q=${encodeURIComponent(searchQuery.trim())}`);
+              }
+            }}
           />
         </div>
       </div>
@@ -97,9 +100,20 @@ export function Topbar({ onMenuClick, onDesktopMenuClick }: { onMenuClick?: () =
         <ThemeToggle />
 
         {/* Coin Balance */}
-        <div className="flex items-center bg-[var(--warning)]/10 text-[var(--warning)] border border-[var(--warning)]/20 px-3 py-1.5 rounded-full font-bold text-sm tracking-tight" title="Your Coin Balance">
-          <Coins className="h-4 w-4 mr-1.5" />
-          {coinData?.balance ?? 0}
+        <div className="flex items-center space-x-2">
+          <div className="flex items-center bg-[var(--warning)]/10 text-[var(--warning)] border border-[var(--warning)]/20 px-3 py-1.5 rounded-full font-bold text-sm tracking-tight" title="Your Coin Balance">
+            <Coins className="h-4 w-4 mr-1.5" />
+            {coinData?.balance ?? 0}
+          </div>
+          {user?.plan !== 'PREMIUM' && (
+            <button 
+              onClick={() => router.push('/pricing')}
+              className="hidden sm:flex items-center bg-[var(--accent-primary)]/10 text-[var(--accent-primary)] border border-[var(--accent-primary)]/20 hover:bg-[var(--accent-primary)] hover:text-white transition-colors px-3 py-1.5 rounded-full font-bold text-sm tracking-tight"
+            >
+              <Sparkles className="h-4 w-4 mr-1.5" />
+              Upgrade
+            </button>
+          )}
         </div>
 
         {/* Notifications (placeholder) */}

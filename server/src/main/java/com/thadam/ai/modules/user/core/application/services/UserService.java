@@ -75,7 +75,8 @@ public class UserService {
                 user.getEmail(),
                 user.getRole(),
                 user.getAvatarUrl(),
-                user.getCoins());
+                user.getCoins(),
+                user.getPlan());
     }
 
     @Cacheable(value = "users", key = "'all'")
@@ -88,7 +89,8 @@ public class UserService {
                         user.getEmail(),
                         user.getRole(),
                         user.getAvatarUrl(),
-                        user.getCoins()))
+                        user.getCoins(),
+                        user.getPlan()))
                 .toList();
     }
 
@@ -100,6 +102,9 @@ public class UserService {
 
         user.setName(req.name());
         user.setEmail(req.email());
+        if (req.avatarUrl() != null) {
+            user.setAvatarUrl(req.avatarUrl());
+        }
 
         User updatedUser = userRepository.save(user);
 
@@ -109,7 +114,8 @@ public class UserService {
                 updatedUser.getEmail(),
                 updatedUser.getRole(),
                 updatedUser.getAvatarUrl(),
-                updatedUser.getCoins());
+                updatedUser.getCoins(),
+                updatedUser.getPlan());
     }
 
     public List<PublicUserResponse> getPublicUsers() {
@@ -122,8 +128,34 @@ public class UserService {
                         user.getRole().name(),
                         roadmapRepository.countByUserId(user.getId()),
                         user.getAvatarUrl(),
-                        user.getCoins()))
+                        user.getCoins(),
+                        user.getVerificationScore() != null ? user.getVerificationScore() : 0))
                 .toList();
+    }
+
+    @Cacheable(value = "users_public", key = "#publicId")
+    public PublicUserResponse getPublicUserById(String publicId) {
+        User user = userRepository.findByPublicId(publicId)
+                .orElseThrow(() -> new NotFoundException("User not found with this id : " + publicId));
+        return new PublicUserResponse(
+                user.getPublicId(),
+                user.getName(),
+                user.getEmail(),
+                user.getRole().name(),
+                roadmapRepository.countByUserId(user.getId()),
+                user.getAvatarUrl(),
+                user.getCoins(),
+                user.getVerificationScore() != null ? user.getVerificationScore() : 0);
+    }
+
+    @Transactional
+    @CacheEvict(value = "users_public", key = "#publicId")
+    public void verifyUser(String publicId, boolean isReal) {
+        User user = userRepository.findByPublicId(publicId)
+                .orElseThrow(() -> new NotFoundException("User not found with this id : " + publicId));
+        int score = user.getVerificationScore() != null ? user.getVerificationScore() : 0;
+        user.setVerificationScore(isReal ? score + 1 : score - 1);
+        userRepository.save(user);
     }
 
     @Transactional

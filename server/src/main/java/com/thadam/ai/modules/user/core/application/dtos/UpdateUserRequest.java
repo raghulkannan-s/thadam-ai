@@ -10,6 +10,8 @@ public record UpdateUserRequest(
 
     @NotBlank(message = "Email is required")
     @Email
-    String email
+    String email,
+    
+    String avatarUrl
 
 ) {}

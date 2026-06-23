@@ -70,14 +70,13 @@ export default function ProtectedLayout({
 
   return (
     <div className="flex min-h-screen bg-[var(--bg-base)] text-[var(--text-primary)] relative">
-      <Sidebar isOpen={isSidebarOpen} isDesktopOpen={isDesktopOpen} setIsOpen={setIsSidebarOpen} />
+      <Sidebar isOpen={isSidebarOpen} isDesktopOpen={isDesktopOpen} setIsOpen={setIsSidebarOpen} setIsDesktopOpen={setIsDesktopOpen} />
       <div className={cn(
         "flex flex-col min-h-screen transition-all duration-300 w-full",
         isDesktopOpen ? "lg:pl-64" : "lg:pl-20"
       )}>
         <Topbar 
           onMenuClick={() => setIsSidebarOpen(true)} 
-          onDesktopMenuClick={() => setIsDesktopOpen(!isDesktopOpen)} 
         />
         <main className="flex-1 p-4 sm:p-6 lg:p-8 overflow-y-auto">
           {children}

@@ -18,6 +18,7 @@ import com.thadam.ai.modules.auth.infrastructure.repositories.UserRepository;
 import com.thadam.ai.common.audit.AuditService;
 import com.thadam.ai.common.exception.ForbiddenException;
 import com.thadam.ai.common.exception.NotFoundException;
+import com.thadam.ai.common.enums.SubscriptionPlan;
 import com.thadam.ai.modules.roadmap.core.application.dtos.CommunityRoadmapResponse;
 import com.thadam.ai.modules.roadmap.core.application.dtos.MilestoneRequest;
 import com.thadam.ai.modules.roadmap.core.application.dtos.MilestoneResponse;
@@ -43,6 +44,9 @@ import com.thadam.ai.modules.community.infrastructure.repositories.FollowReposit
 import com.thadam.ai.modules.roadmap.infrastructure.repositories.RoadmapRepository;
 import org.springframework.context.ApplicationEventPublisher;
 import com.thadam.ai.modules.gamification.core.domain.events.TaskCompletedEvent;
+import com.thadam.ai.modules.ledger.core.application.services.LedgerService;
+import com.thadam.ai.modules.ledger.core.application.dtos.CoinTransactionRequest;
+import com.thadam.ai.modules.ledger.core.domain.enums.TransactionType;
 
 import lombok.RequiredArgsConstructor;
 
@@ -61,6 +65,7 @@ public class RoadmapService {
     private final FollowRepository followRepository;
     private final AuditService auditService;
     private final ApplicationEventPublisher eventPublisher;
+    private final LedgerService ledgerService;
 
     @jakarta.annotation.PostConstruct
     @Transactional
@@ -316,6 +321,23 @@ public class RoadmapService {
             task.setStatus(request.status());
             if (oldStatus != TaskStatus.DONE && request.status() == TaskStatus.DONE) {
                 eventPublisher.publishEvent(new TaskCompletedEvent(user.getId(), task.getId()));
+                
+                if (!task.isCoinGranted()) {
+                    Long originalRoadmapId = task.getRoadmap().getForkedFrom() != null 
+                        ? task.getRoadmap().getForkedFrom().getId() 
+                        : task.getRoadmap().getId();
+
+                    if (!ledgerService.hasEarnedCoinForReference(user.getId(), "ROADMAP_COMPLETION", originalRoadmapId)) {
+                        ledgerService.addTransaction(user, new CoinTransactionRequest(
+                                1,
+                                TransactionType.EARNED,
+                                "Roadmap Progress Reward",
+                                "ROADMAP_COMPLETION",
+                                originalRoadmapId
+                        ));
+                    }
+                    task.setCoinGranted(true);
+                }
             }
         }
         if (request.priority() != null) task.setPriority(request.priority());
@@ -359,7 +381,7 @@ public class RoadmapService {
     }
 
     @Transactional
-    public RoadmapResponse forkRoadmap(String publicId, User user) {
+    public RoadmapResponse forkRoadmap(String publicId, String visibilityStr, User user) {
         Roadmap original = roadmapRepository.findByPublicId(publicId)
                 .orElseThrow(() -> new NotFoundException("Roadmap not found with id: " + publicId));
 
@@ -374,11 +396,18 @@ public class RoadmapService {
             throw new ForbiddenException("You have already forked this roadmap");
         }
 
+        if (user.getPlan() == SubscriptionPlan.FREE) {
+            long forkCount = roadmapRepository.countByUserIdAndForkedFromIsNotNull(user.getId());
+            if (forkCount >= 3) {
+                throw new ForbiddenException("Free users can only have up to 3 active forks. Please unfork a roadmap or upgrade to Premium.");
+            }
+        }
+
         Roadmap fork = Roadmap.builder()
                 .title(original.getTitle() + " (forked)")
                 .description(original.getDescription())
                 .user(user)
-                .visibility(RoadmapVisibility.DRAFT) // Fork starts as draft
+                .visibility(RoadmapVisibility.valueOf(visibilityStr))
                 .forkedFrom(original)
                 .build();
         fork = roadmapRepository.save(fork);

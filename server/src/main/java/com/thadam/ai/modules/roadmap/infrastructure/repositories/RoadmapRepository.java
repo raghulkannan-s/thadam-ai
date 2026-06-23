@@ -39,6 +39,8 @@ public interface RoadmapRepository extends JpaRepository<Roadmap, Long> {
 
     boolean existsByForkedFromIdAndUserId(Long forkedFromId, Long userId);
 
+    long countByUserIdAndForkedFromIsNotNull(Long userId);
+
     @Query("SELECT r.forkedFrom.id, COUNT(r) FROM Roadmap r WHERE r.forkedFrom.id IN :roadmapIds GROUP BY r.forkedFrom.id")
     java.util.List<Object[]> countForksByRoadmapIdIn(@org.springframework.data.repository.query.Param("roadmapIds") java.util.List<Long> roadmapIds);
 

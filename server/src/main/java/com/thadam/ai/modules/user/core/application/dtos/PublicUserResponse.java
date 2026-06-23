@@ -7,5 +7,6 @@ public record PublicUserResponse(
     String role,
     long roadmapCount,
     String avatarUrl,
-    int coins
+    int coins,
+    int verificationScore
 ) {}

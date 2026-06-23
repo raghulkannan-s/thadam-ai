@@ -28,23 +28,26 @@ export default function CreatorProfilePage({ params }: { params: Promise<{ id: s
   return (
     <div className="mx-auto max-w-6xl pb-20">
       
-      <Link 
-        href="/people" 
-        className="inline-flex items-center text-sm text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors mb-6 no-underline"
-      >
-        <ArrowLeft className="mr-1.5 h-4 w-4" />
-        Back to People
-      </Link>
+      <div className="w-full flex justify-start mb-6">
+        <Link 
+          href="/people" 
+          className="inline-flex items-center text-sm text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors no-underline"
+        >
+          <ArrowLeft className="mr-1.5 h-4 w-4" />
+          Back to People
+        </Link>
+      </div>
 
       {/* Profile Header */}
       <div className="relative mb-20">
-        <div className="h-48 w-full rounded-3xl bg-gradient-to-r from-blue-600/20 via-purple-600/20 to-indigo-600/20 border border-[var(--border-subtle)] overflow-hidden" />
+        <div className="h-48 w-full rounded-3xl bg-[var(--bg-elevated)] border border-[var(--border-subtle)] overflow-hidden" />
         
         <div className="absolute -bottom-16 left-8 flex items-end space-x-6">
           <Avatar 
+            src={profile?.avatarUrl}
             fallback={username} 
             size="xl" 
-            className="h-32 w-32 border-4 border-[var(--bg-base)] shadow-2xl" 
+            className="h-32 w-32 border-4 border-[var(--bg-base)] shadow-2xl bg-white" 
           />
           <div className="mb-2">
             <h1 className="text-3xl font-extrabold tracking-tight">@{username}</h1>

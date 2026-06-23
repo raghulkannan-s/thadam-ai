@@ -5,6 +5,7 @@ export interface User {
   role: string;
   avatarUrl?: string;
   coins?: number;
+  plan?: "FREE" | "PREMIUM";
   createdAt?: string;
 }
 

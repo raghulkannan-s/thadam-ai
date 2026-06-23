@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
-import { Home, Compass, BookOpen, Users, Plus, X } from 'lucide-react';
+import { Home, Compass, BookOpen, Users, Plus, X, Menu, Sparkles } from 'lucide-react';
 import { cn } from '@/utils/cn';
 import { Button } from '@/shared/ui/Button';
 
@@ -11,9 +11,10 @@ const navItems = [
   { name: 'Explore', href: '/community', icon: Compass },
   { name: 'My Learning', href: '/my-learning', icon: BookOpen },
   { name: 'People', href: '/people', icon: Users },
+  { name: 'Premium', href: '/pricing', icon: Sparkles },
 ];
 
-export function Sidebar({ isOpen = false, isDesktopOpen = true, setIsOpen }: { isOpen?: boolean; isDesktopOpen?: boolean; setIsOpen?: (v: boolean) => void }) {
+export function Sidebar({ isOpen = false, isDesktopOpen = true, setIsOpen, setIsDesktopOpen }: { isOpen?: boolean; isDesktopOpen?: boolean; setIsOpen?: (v: boolean) => void; setIsDesktopOpen?: (v: boolean) => void }) {
   const pathname = usePathname();
   const router = useRouter();
 
@@ -25,14 +26,37 @@ export function Sidebar({ isOpen = false, isDesktopOpen = true, setIsOpen }: { i
       isDesktopOpen ? "lg:w-64 lg:px-4" : "lg:w-20 lg:px-2"
     )}>
       <div className={cn("mb-10 flex items-center px-2", isDesktopOpen ? "justify-between" : "justify-center")}>
-        <div className="flex items-center">
-          <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-[var(--accent-primary)] text-white font-bold shadow-lg shadow-[var(--accent-primary)]/30">
-            T
+        {isDesktopOpen ? (
+          <>
+            <div className="flex items-center">
+              <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-[var(--accent-primary)] text-white font-bold shadow-lg shadow-[var(--accent-primary)]/30">
+                T
+              </div>
+              <span className="ml-3 text-lg font-bold tracking-tight text-[var(--text-primary)] transition-opacity">
+                Thadam
+              </span>
+            </div>
+            {/* Desktop Toggle Button (Expanded) */}
+            <button 
+              className="hidden lg:block p-1.5 rounded-md text-[var(--text-secondary)] hover:bg-[var(--bg-elevated)] transition-colors"
+              onClick={() => setIsDesktopOpen?.(!isDesktopOpen)}
+              aria-label="Toggle desktop menu"
+            >
+              <Menu className="h-5 w-5" />
+            </button>
+          </>
+        ) : (
+          <div className="flex flex-col items-center">
+            {/* Desktop Toggle Button (Collapsed) */}
+            <button 
+              className="hidden lg:block p-1.5 rounded-md text-[var(--text-secondary)] hover:bg-[var(--bg-elevated)] transition-colors"
+              onClick={() => setIsDesktopOpen?.(!isDesktopOpen)}
+              aria-label="Toggle desktop menu"
+            >
+              <Menu className="h-5 w-5" />
+            </button>
           </div>
-          <span className={cn("ml-3 text-lg font-bold tracking-tight text-[var(--text-primary)] transition-opacity", !isDesktopOpen && "lg:hidden")}>
-            Thadam
-          </span>
-        </div>
+        )}
         
         {/* Mobile Close Button */}
         <button 

@@ -10,6 +10,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 import com.thadam.ai.common.entity.BaseEntity;
 import com.thadam.ai.common.enums.AuthProvider;
 import com.thadam.ai.common.enums.Role;
+import com.thadam.ai.common.enums.SubscriptionPlan;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -57,6 +58,16 @@ public class User extends BaseEntity implements UserDetails {
     }
     @Enumerated(EnumType.STRING)
     private Role role;
+
+
+    @Column(name = "verification_score")
+    @Builder.Default
+    private Integer verificationScore = 0;
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    @Builder.Default
+    private SubscriptionPlan plan = SubscriptionPlan.FREE;
 
     @Enumerated(EnumType.STRING)
     private AuthProvider provider;

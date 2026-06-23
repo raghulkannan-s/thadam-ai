@@ -8,5 +8,6 @@ public record UserResponse(
     String email,
     Role role,
     String avatarUrl,
-    int coins
+    int coins,
+    com.thadam.ai.common.enums.SubscriptionPlan plan
 ) {}

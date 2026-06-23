@@ -4,13 +4,65 @@ import { useAuth } from "@/features/auth/context/auth-context";
 
 import Link from "next/link";
 import { PageLoader } from "@/shared/ui/LoadingSpinner";
+import { Avatar } from "@/shared/ui/Avatar";
+import { Button } from "@/shared/ui/Button";
+import { useState, useRef } from "react";
+import { toast } from "sonner";
+import { apiFetch } from "@/lib/api";
 
 export default function ProfilePage() {
-  const { user, isLoading: authLoading } = useAuth();
-
+  const { user, isLoading: authLoading, refresh } = useAuth();
+  const [isUploading, setIsUploading] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   if (authLoading) return <PageLoader />;
   if (!user) return null;
+
+  const handleAvatarClick = () => {
+    fileInputRef.current?.click();
+  };
+
+  const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    // Check size < 5MB
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error("Image must be smaller than 5MB");
+      return;
+    }
+
+    setIsUploading(true);
+    try {
+      // Create a FormData to send to an external cloud or our backend
+      // Here we simulate an upload by converting to base64 for now, or using a mock cloud
+      // Ideally this goes to Cloudinary or S3
+      
+      const reader = new FileReader();
+      reader.onloadend = async () => {
+        const base64String = reader.result as string;
+        
+        // Update user profile via PATCH /api/user/me
+        await apiFetch("/api/user/me", {
+          method: "PATCH",
+          body: JSON.stringify({
+            name: user.name,
+            email: user.email,
+            avatarUrl: base64String // In a real app with "some cloud", you'd put the returned Cloudinary URL here
+          })
+        });
+
+        toast.success("Profile photo updated successfully!");
+        await refresh();
+        setIsUploading(false);
+      };
+      reader.readAsDataURL(file);
+
+    } catch (error) {
+      toast.error("Failed to upload photo");
+      setIsUploading(false);
+    }
+  };
 
   return (
     <div style={{ padding: "32px 40px 80px", maxWidth: 700, margin: "0 auto" }}>
@@ -21,14 +73,28 @@ export default function ProfilePage() {
 
       <div className="panel animate-fade-in-up delay-100" style={{ borderRadius: "var(--radius-2xl)", padding: "32px", marginTop: "24px" }}>
         <div style={{ display: "flex", alignItems: "center", gap: "20px" }}>
-          <div style={{
-            width: 56, height: 56, borderRadius: "var(--radius-full)",
-            background: "var(--accent-primary)", display: "flex",
-            alignItems: "center", justifyContent: "center",
-            fontWeight: 700, fontSize: "1.3rem", color: "var(--text-inverse)",
-            flexShrink: 0,
-          }}>
-            {(user.name || user.email).charAt(0).toUpperCase()}
+          <div className="relative group cursor-pointer" onClick={handleAvatarClick}>
+            <Avatar 
+              src={user.avatarUrl} 
+              fallback={user.name || user.email} 
+              size="xl" 
+              className={`h-24 w-24 border-4 border-[var(--bg-base)] shadow-xl ${isUploading ? 'opacity-50' : 'group-hover:opacity-80 transition-opacity'}`}
+            />
+            <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+               <span className="text-white text-xs font-bold drop-shadow-md">Change</span>
+            </div>
+            <input 
+              type="file" 
+              ref={fileInputRef} 
+              onChange={handleFileChange} 
+              accept="image/*" 
+              className="hidden" 
+            />
+            {isUploading && (
+              <div className="absolute inset-0 flex items-center justify-center">
+                <div className="h-6 w-6 animate-spin rounded-full border-b-2 border-t-2 border-white"></div>
+              </div>
+            )}
           </div>
           <div>
             <h2 style={{ fontSize: "1.2rem", fontWeight: 700, color: "var(--text-primary)" }}>{user.name}</h2>

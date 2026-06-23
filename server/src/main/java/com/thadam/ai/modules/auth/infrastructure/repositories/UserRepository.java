@@ -13,8 +13,4 @@ public interface UserRepository extends JpaRepository<User, Long> {
     Optional<User> findByEmail(String email);
 
     Optional<User> findByPublicId(String publicId);
-
-    @org.springframework.data.jpa.repository.Modifying
-    @org.springframework.data.jpa.repository.Query("UPDATE User u SET u.coins = u.coins + 10")
-    int grantDailyCoinsToAllUsers();
 }

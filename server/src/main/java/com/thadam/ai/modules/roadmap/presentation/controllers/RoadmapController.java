@@ -201,8 +201,9 @@ public class RoadmapController {
     @PostMapping("/{id}/fork")
     public ResponseEntity<ApiResponse<RoadmapResponse>> forkRoadmap(
             @PathVariable String id,
+            @RequestParam(required = false, defaultValue = "PRIVATE") String visibility,
             @AuthenticationPrincipal User user) {
-        RoadmapResponse response = roadmapService.forkRoadmap(id, user);
+        RoadmapResponse response = roadmapService.forkRoadmap(id, visibility, user);
         return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.success(response));
     }
 

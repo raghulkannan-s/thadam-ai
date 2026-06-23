@@ -4,10 +4,11 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 
 public record RoadmapGenerationRequest(
-    @NotBlank @Size(min = 10, max = 2000) String prompt,
+    @NotBlank @Size(min = 3, max = 2000) String prompt,
     @NotBlank String difficulty,
     @jakarta.validation.constraints.NotNull Integer durationWeeks,
     @jakarta.validation.constraints.NotNull Double estimatedHoursPerDay,
     java.time.LocalDateTime startDate,
-    String visibility
+    String visibility,
+    Boolean isRegeneration
 ) {}

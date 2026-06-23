@@ -16,6 +16,7 @@ interface TaskViewModalProps {
   hasNext: boolean;
   hasPrevious: boolean;
   isUpdating: boolean;
+  isReadOnly?: boolean;
 }
 
 export function TaskViewModal({
@@ -27,7 +28,8 @@ export function TaskViewModal({
   onPrevious,
   hasNext,
   hasPrevious,
-  isUpdating
+  isUpdating,
+  isReadOnly = false
 }: TaskViewModalProps) {
   const [showConfetti, setShowConfetti] = useState(false);
 
@@ -104,49 +106,51 @@ export function TaskViewModal({
           </div>
 
           {/* Action Area */}
-          <div className="mt-10 flex flex-col items-center justify-center rounded-xl bg-[var(--bg-elevated)] p-8 border border-[var(--border-subtle)]">
-            {isInProgress ? (
-              <>
-                <p className="mb-4 text-sm font-medium text-[var(--text-secondary)]">You&apos;re currently working on this task.</p>
-                <Button 
-                  variant="primary" 
-                  size="lg" 
-                  className="w-full sm:w-auto h-14 px-10 text-lg font-bold shadow-lg shadow-green-500/20 bg-green-500 hover:bg-green-600 text-white"
-                  onClick={handleStatusChange}
-                  disabled={isUpdating}
-                >
-                  <CheckCircle2 className="mr-2 h-6 w-6" /> Mark as Complete
-                </Button>
-              </>
-            ) : isCompleted ? (
-              <>
-                <div className="mb-4 inline-flex h-12 w-12 items-center justify-center rounded-full bg-green-500/10 text-green-500">
-                  <CheckCircle2 className="h-6 w-6" />
-                </div>
-                <p className="mb-4 font-bold text-green-500">Task Completed!</p>
-                <Button 
-                  variant="ghost" 
-                  onClick={handleStatusChange}
-                  disabled={isUpdating}
-                >
-                  Reopen Task
-                </Button>
-              </>
-            ) : (
-              <>
-                <p className="mb-4 text-sm font-medium text-[var(--text-secondary)]">Ready to dive in?</p>
-                <Button 
-                  variant="primary" 
-                  size="lg" 
-                  className="w-full sm:w-auto h-14 px-10 text-lg font-bold shadow-lg shadow-[var(--accent-primary)]/20"
-                  onClick={handleStatusChange}
-                  disabled={isUpdating}
-                >
-                  <Play className="mr-2 h-5 w-5" /> Start Task
-                </Button>
-              </>
-            )}
-          </div>
+          {!isReadOnly && (
+            <div className="mt-10 flex flex-col items-center justify-center rounded-xl bg-[var(--bg-elevated)] p-8 border border-[var(--border-subtle)]">
+              {isInProgress ? (
+                <>
+                  <p className="mb-4 text-sm font-medium text-[var(--text-secondary)]">You&apos;re currently working on this task.</p>
+                  <Button 
+                    variant="primary" 
+                    size="lg" 
+                    className="w-full sm:w-auto h-14 px-10 text-lg font-bold shadow-lg shadow-green-500/20 bg-green-500 hover:bg-green-600 text-white"
+                    onClick={handleStatusChange}
+                    disabled={isUpdating}
+                  >
+                    <CheckCircle2 className="mr-2 h-6 w-6" /> Mark as Complete
+                  </Button>
+                </>
+              ) : isCompleted ? (
+                <>
+                  <div className="mb-4 inline-flex h-12 w-12 items-center justify-center rounded-full bg-green-500/10 text-green-500">
+                    <CheckCircle2 className="h-6 w-6" />
+                  </div>
+                  <p className="mb-4 font-bold text-green-500">Task Completed!</p>
+                  <Button 
+                    variant="ghost" 
+                    onClick={handleStatusChange}
+                    disabled={isUpdating}
+                  >
+                    Reopen Task
+                  </Button>
+                </>
+              ) : (
+                <>
+                  <p className="mb-4 text-sm font-medium text-[var(--text-secondary)]">Ready to dive in?</p>
+                  <Button 
+                    variant="primary" 
+                    size="lg" 
+                    className="w-full sm:w-auto h-14 px-10 text-lg font-bold shadow-lg shadow-[var(--accent-primary)]/20"
+                    onClick={handleStatusChange}
+                    disabled={isUpdating}
+                  >
+                    <Play className="mr-2 h-5 w-5" /> Start Task
+                  </Button>
+                </>
+              )}
+            </div>
+          )}
         </div>
 
         {/* Footer Navigation */}
@@ -162,14 +166,15 @@ export function TaskViewModal({
           <div className="text-xs text-[var(--text-tertiary)]">
             {/* Can add X of Y tasks indicator here */}
           </div>
-          <Button 
-            variant="ghost" 
-            onClick={onNext} 
-            disabled={!hasNext}
-            className="text-[var(--text-primary)] font-semibold"
-          >
-            Next <ArrowRight className="ml-2 h-4 w-4" />
-          </Button>
+          {hasNext && (
+            <Button 
+              variant="ghost" 
+              onClick={onNext} 
+              className="text-[var(--text-primary)] font-semibold"
+            >
+              Next <ArrowRight className="ml-2 h-4 w-4" />
+            </Button>
+          )}
         </div>
 
         {/* Confetti Animation Overlay */}
