@@ -460,6 +460,12 @@ public class RoadmapService {
                 .user(user)
                 .visibility(RoadmapVisibility.valueOf(visibilityStr))
                 .forkedFrom(original)
+                .category(original.getCategory())
+                .difficulty(original.getDifficulty())
+                .durationWeeks(original.getDurationWeeks())
+                .durationType(original.getDurationType())
+                .durationValue(original.getDurationValue())
+                .estimatedHoursPerDay(original.getEstimatedHoursPerDay())
                 .build();
         fork = roadmapRepository.save(fork);
 

@@ -72,7 +72,9 @@ public class RoadmapGenerationService {
                 .visibility(request.visibility() != null ? RoadmapVisibility.valueOf(request.visibility()) : RoadmapVisibility.PRIVATE)
                 .status(com.thadam.ai.modules.roadmap.core.domain.enums.RoadmapStatus.GENERATING)
                 .difficulty(request.difficulty())
-                .durationWeeks(request.durationWeeks())
+                .durationWeeks(request.durationWeeks() != null ? request.durationWeeks() : (request.durationValue() != null ? request.durationValue() : 4))
+                .durationType(request.durationType() != null ? request.durationType() : "WEEKS")
+                .durationValue(request.durationValue() != null ? request.durationValue() : (request.durationWeeks() != null ? request.durationWeeks() : 4))
                 .estimatedHoursPerDay(request.estimatedHoursPerDay())
                 .startDate(request.startDate())
                 .build();
@@ -280,7 +282,9 @@ public class RoadmapGenerationService {
                     .category(request.category() != null ? parseCategory(request.category()) : parseCategory(root.has("category") ? root.get("category").asText() : "OTHER"))
                     .visibility(request.visibility() != null ? RoadmapVisibility.valueOf(request.visibility()) : RoadmapVisibility.DRAFT)
                     .difficulty(request.difficulty())
-                    .durationWeeks(request.durationWeeks())
+                    .durationWeeks(request.durationWeeks() != null ? request.durationWeeks() : (request.durationValue() != null ? request.durationValue() : 4))
+                    .durationType(request.durationType() != null ? request.durationType() : "WEEKS")
+                    .durationValue(request.durationValue() != null ? request.durationValue() : (request.durationWeeks() != null ? request.durationWeeks() : 4))
                     .estimatedHoursPerDay(request.estimatedHoursPerDay())
                     .startDate(request.startDate())
                     .build();
