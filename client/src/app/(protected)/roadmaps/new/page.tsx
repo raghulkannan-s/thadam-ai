@@ -56,7 +56,10 @@ export default function NewRoadmapPage() {
       setGenerationStage(0);
       timers.push(setTimeout(() => setGenerationStage(1), 5000));
       timers.push(setTimeout(() => setGenerationStage(2), 12000));
-      timers.push(setTimeout(() => setGenerationStage(3), 20000));
+      timers.push(setTimeout(() => setGenerationStage(3), 22000));
+      timers.push(setTimeout(() => setGenerationStage(4), 35000));
+      timers.push(setTimeout(() => setGenerationStage(5), 50000));
+      timers.push(setTimeout(() => setGenerationStage(6), 70000));
     } else {
       setGenerationStage(0);
     }
@@ -65,9 +68,12 @@ export default function NewRoadmapPage() {
 
   const progressMessages = [
     "Analyzing your request...",
-    "Drafting curriculum...",
-    "Validating milestones and tasks...",
-    "Finalizing the roadmap..."
+    "Researching the best learning path...",
+    "Drafting curriculum structure...",
+    "Building milestones and tasks...",
+    "Validating content quality...",
+    "Polishing the final roadmap...",
+    "Almost there, hang tight!"
   ];
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -324,7 +330,7 @@ export default function NewRoadmapPage() {
               <div className="mt-6 w-full h-1.5 bg-[var(--bg-elevated)] rounded-full overflow-hidden shadow-inner">
                 <div 
                   className="h-full bg-[var(--accent-primary)] rounded-full transition-all duration-1000 ease-out"
-                  style={{ width: `${Math.min(100, (generationStage + 1) * 25)}%` }}
+                  style={{ width: `${Math.min(100, ((generationStage + 1) / 7) * 100)}%` }}
                 />
               </div>
               <p className="text-center text-xs text-[var(--text-tertiary)] mt-3 font-semibold tracking-wide uppercase">

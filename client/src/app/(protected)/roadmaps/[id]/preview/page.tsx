@@ -40,17 +40,6 @@ export default function PreviewRoadmapPage({ params }: { params: Promise<{ id: s
     return <div>Roadmap not found.</div>;
   }
 
-  if (roadmap.status === 'GENERATING') {
-    return (
-      <div className="flex h-[80vh] flex-col items-center justify-center animate-fade-in-up">
-        <Spinner size={48} className="mb-6 text-[var(--accent-primary)]" />
-        <h2 className="text-2xl font-bold mb-2">AI is crafting your roadmap...</h2>
-        <p className="text-[var(--text-secondary)] text-center max-w-md">
-          This usually takes 5-10 seconds. We're analyzing your requirements and structuring a customized learning path.
-        </p>
-      </div>
-    );
-  }
 
   if (roadmap.status === 'FAILED') {
     return (
