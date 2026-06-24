@@ -18,11 +18,11 @@ function ProPageContent() {
 
   useEffect(() => {
     if (searchParams.get('success') === 'true') {
-      toast.success("Payment successful! Your account has been updated.");
+      toast.success("Payment successful! Your account has been updated.", { id: 'payment-success' });
       refresh(); // Pull the new coins/plan from the backend instantly
       router.replace('/pricing'); // Clear the query params
     } else if (searchParams.get('canceled') === 'true') {
-      toast.error("Payment was canceled.");
+      toast.error("Payment was canceled.", { id: 'payment-canceled' });
       router.replace('/pricing');
     }
   }, [searchParams, refresh, router]);
