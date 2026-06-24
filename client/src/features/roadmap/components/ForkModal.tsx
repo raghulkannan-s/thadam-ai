@@ -10,13 +10,15 @@ interface ForkModalProps {
   onClose: () => void;
   roadmap: CommunityRoadmapResponse;
   onFork: (visibility: string) => void;
-  onRegenerate: (visibility: string) => void;
+  onRegenerate: (visibility: string, customPrompt: string) => void;
   isForking: boolean;
   isRegenerating: boolean;
+  isOwner?: boolean;
 }
 
-export function ForkModal({ isOpen, onClose, roadmap, onFork, onRegenerate, isForking, isRegenerating }: ForkModalProps) {
+export function ForkModal({ isOpen, onClose, roadmap, onFork, onRegenerate, isForking, isRegenerating, isOwner = false }: ForkModalProps) {
   const [visibility, setVisibility] = useState<"PUBLIC" | "PRIVATE">("PRIVATE");
+  const [customPrompt, setCustomPrompt] = useState("");
 
   const isLoading = isForking || isRegenerating;
 
@@ -24,9 +26,13 @@ export function ForkModal({ isOpen, onClose, roadmap, onFork, onRegenerate, isFo
     <Dialog open={isOpen} onOpenChange={(open) => !open && !isLoading && onClose()}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle className="text-xl">Fork Roadmap</DialogTitle>
+          <DialogTitle className="text-xl">
+            {isOwner ? "Regenerate Roadmap" : "Fork Roadmap"}
+          </DialogTitle>
           <DialogDescription>
-            Choose how you want to copy "{roadmap.title}" to your account.
+            {isOwner 
+              ? `Regenerate "${roadmap.title}" with new AI instructions to create a better version.` 
+              : `Choose how you want to copy "${roadmap.title}" to your account.`}
           </DialogDescription>
         </DialogHeader>
 
@@ -52,22 +58,35 @@ export function ForkModal({ isOpen, onClose, roadmap, onFork, onRegenerate, isFo
               </button>
             </div>
           </div>
+
+          <div className="space-y-3">
+            <label className="text-sm font-semibold text-[var(--text-primary)]">Custom Instructions (Optional)</label>
+            <textarea
+              value={customPrompt}
+              onChange={(e) => setCustomPrompt(e.target.value)}
+              placeholder="E.g., Focus more on backend, use Python instead of Java, make it 8 weeks instead..."
+              className="w-full min-h-[100px] p-3 rounded-xl border border-[var(--border-default)] bg-[var(--bg-base)] text-[var(--text-primary)] placeholder:text-[var(--text-tertiary)] focus:outline-none focus:ring-2 focus:ring-[var(--accent-primary)] resize-y text-sm"
+              disabled={isLoading}
+            />
+          </div>
         </div>
 
         <DialogFooter className="flex flex-col sm:flex-row gap-3 sm:justify-between mt-2">
-          <Button 
-            variant="outline" 
-            className="flex-1 h-12"
-            onClick={() => onFork(visibility)}
-            disabled={isLoading}
-          >
-            <Copy className="mr-2 h-4 w-4" />
-            {isForking ? "Forking..." : "Exact Copy (Free)"}
-          </Button>
+          {!isOwner && (
+            <Button 
+              variant="outline" 
+              className="flex-1 h-12"
+              onClick={() => onFork(visibility)}
+              disabled={isLoading}
+            >
+              <Copy className="mr-2 h-4 w-4" />
+              {isForking ? "Forking..." : "Exact Copy (Free)"}
+            </Button>
+          )}
           <Button 
             variant="primary" 
             className="flex-1 h-12 bg-[var(--accent-primary)] hover:opacity-90 border-none text-white"
-            onClick={() => onRegenerate(visibility)}
+            onClick={() => onRegenerate(visibility, customPrompt)}
             disabled={isLoading}
           >
             <Sparkles className="mr-2 h-4 w-4" />

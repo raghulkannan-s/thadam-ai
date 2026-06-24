@@ -1,0 +1,3 @@
+ALTER TABLE roadmaps
+ADD COLUMN duration_type VARCHAR(20) DEFAULT 'WEEKS',
+ADD COLUMN duration_value INTEGER DEFAULT 4;

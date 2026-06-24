@@ -1,33 +1,38 @@
 import { useQuery } from "@tanstack/react-query";
 import { apiFetch } from "@/lib/api";
-import type { CommunityRoadmapResponse, PageResponse, RoadmapResponse, MilestoneResponse, TaskResponse } from "@/lib/types";
+import type { CommunityRoadmapResponse, PageResponse, RoadmapResponse, MilestoneResponse, TaskResponse, CommentResponse } from "@/lib/types";
 
-export function useTrendingRoadmaps() {
+export function useTrendingRoadmaps(category?: string) {
   return useQuery({
-    queryKey: ["roadmaps", "trending"],
+    queryKey: ["roadmaps", "trending", category],
     queryFn: async () => {
-      const res = await apiFetch<PageResponse<CommunityRoadmapResponse>>("/api/roadmaps/feed/trending");
+      const url = category ? `/api/roadmaps/feed/trending?category=${category}` : "/api/roadmaps/feed/trending";
+      const res = await apiFetch<PageResponse<CommunityRoadmapResponse>>(url);
       return res.data;
     },
   });
 }
 
-export function useSearchRoadmaps(query: string) {
+export function useSearchRoadmaps(query: string, category?: string) {
   return useQuery({
-    queryKey: ["roadmaps", "search", query],
+    queryKey: ["roadmaps", "search", query, category],
     queryFn: async () => {
-      const res = await apiFetch<PageResponse<CommunityRoadmapResponse>>(`/api/roadmaps/search?q=${encodeURIComponent(query)}`);
+      const url = category 
+        ? `/api/roadmaps/search?q=${encodeURIComponent(query)}&category=${category}` 
+        : `/api/roadmaps/search?q=${encodeURIComponent(query)}`;
+      const res = await apiFetch<PageResponse<CommunityRoadmapResponse>>(url);
       return res.data;
     },
     enabled: query.length > 0,
   });
 }
 
-export function useNewestRoadmaps() {
+export function useNewestRoadmaps(category?: string) {
   return useQuery({
-    queryKey: ["roadmaps", "newest"],
+    queryKey: ["roadmaps", "newest", category],
     queryFn: async () => {
-      const res = await apiFetch<PageResponse<CommunityRoadmapResponse>>("/api/roadmaps/feed/newest");
+      const url = category ? `/api/roadmaps/feed/newest?category=${category}` : "/api/roadmaps/feed/newest";
+      const res = await apiFetch<PageResponse<CommunityRoadmapResponse>>(url);
       return res.data;
     },
   });
@@ -73,6 +78,10 @@ export function useRoadmap(id: string) {
       const res = await apiFetch<CommunityRoadmapResponse>(`/api/roadmaps/${id}`);
       return res.data;
     },
+    refetchInterval: (query) => {
+      const status = (query.state.data as any)?.status;
+      return status === 'GENERATING' ? 2000 : false;
+    },
   });
 }
 
@@ -103,5 +112,16 @@ export function useMyRoadmaps() {
       const res = await apiFetch<PageResponse<RoadmapResponse>>("/api/roadmaps");
       return res.data;
     },
+  });
+}
+
+export function useRoadmapComments(id: string) {
+  return useQuery({
+    queryKey: ["roadmaps", id, "comments"],
+    queryFn: async () => {
+      const res = await apiFetch<CommentResponse[]>(`/api/roadmaps/${id}/comments`);
+      return res.data;
+    },
+    enabled: !!id,
   });
 }

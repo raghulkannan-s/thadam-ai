@@ -77,7 +77,6 @@ function RealJet({ bankAngle, pitchAngle, takingOff, scrollYProgress }: { bankAn
         groupRef.current.position.y = THREE.MathUtils.lerp(0, -4.0, easeScale);
         
         // 3. X position (The Sweep):
-        
         let targetX = 0;
         let bankZ = 0; // This controls YAW (nose left/right)
         let pitchX = 0; // Flat pitch (0 = parallel to ground)
@@ -86,7 +85,7 @@ function RealJet({ bankAngle, pitchAngle, takingOff, scrollYProgress }: { bankAn
         if (t < 0.4) {
           // Fly Left: Point nose Left (-X) - Slower flight out
           const localT = t / 0.4;
-          // Use easeInOut so it starts SLOWLY from zero velocity instead of jumping
+          // Easing for a smooth turn-out
           const smoothStart = localT < 0.5 ? 2 * localT * localT : 1 - Math.pow(-2 * localT + 2, 2) / 2;
           targetX = THREE.MathUtils.lerp(0, -25, smoothStart); // Fly much further left
           bankZ = THREE.MathUtils.lerp(0, -Math.PI / 2, smoothStart); // Yaw from -Y to -X
@@ -165,7 +164,7 @@ function JourneyScene({ scrollYProgress, takingOff }: { scrollYProgress: any, ta
     }
   });
 
-  const nodes = 6;
+  const nodes = 5;
   const distance = 200;
   const step = distance / (nodes - 1);
 
@@ -295,9 +294,10 @@ export default function TopDownRoadmapScene({ containerRef }: Props) {
         camera={{ position: [0, -10, 8], fov: 45, rotation: [0.8, 0, 0] }}
         dpr={[1, 2]}
       >
-        <ambientLight intensity={0.7} />
-        <directionalLight position={[10, -10, 20]} intensity={1.8} castShadow shadow-mapSize={[1024, 1024]} />
-        <Environment preset="city" />
+        <ambientLight intensity={2.5} color="#ffffff" />
+        <directionalLight position={[10, -10, 20]} intensity={4.0} castShadow shadow-mapSize={[1024, 1024]} color="#ffffff" />
+        <directionalLight position={[-10, 10, -20]} intensity={2.0} color="#88ccff" />
+        <pointLight position={[0, -5, 10]} intensity={3.0} color="#ffeedd" />
 
         <Suspense fallback={null}>
           <Float speed={1.5} rotationIntensity={0.1} floatIntensity={0.4}>

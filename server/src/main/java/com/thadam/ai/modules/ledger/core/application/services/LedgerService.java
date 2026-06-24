@@ -41,19 +41,19 @@ public class LedgerService {
                 && user.getRole() != Role.ADMIN) {
             throw new ForbiddenException("Only admins can use ADMIN_ADJUSTMENT");
         }
-        int currentBalance = getCurrentBalance(user.getId());
-        
-        if (request.transactionType() == com.thadam.ai.modules.ledger.core.domain.enums.TransactionType.SPENT 
-                && currentBalance < request.amount()) {
-            throw new com.thadam.ai.common.exception.InsufficientCoinsException(
-                    "Insufficient coins. Current balance: " + currentBalance + ", Required: " + request.amount());
-        }
-
         int signedAmount = switch (request.transactionType()) {
             case EARNED, REFUND, ADMIN_ADJUSTMENT, PURCHASED -> request.amount();
             case SPENT -> -request.amount();
         };
-        int balanceAfter = currentBalance + signedAmount;
+
+        int rowsUpdated = userRepository.updateCoinsAtomically(user.getId(), signedAmount);
+        if (rowsUpdated == 0) {
+            throw new com.thadam.ai.common.exception.InsufficientCoinsException(
+                    "Insufficient coins or user not found. Required: " + request.amount());
+        }
+
+        // Fetch fresh balance after atomic update
+        int balanceAfter = getCurrentBalance(user.getId());
 
         CoinTransaction transaction = CoinTransaction.builder()
                 .user(user)
@@ -65,9 +65,6 @@ public class LedgerService {
                 .referenceId(request.referenceId())
                 .createdAt(java.time.LocalDateTime.now())
                 .build();
-
-        user.setCoins(balanceAfter);
-        userRepository.save(user);
 
         CoinTransaction saved = coinTransactionRepository.save(transaction);
         eventPublisher.publishEvent(new CoinTransactionEvent(saved));

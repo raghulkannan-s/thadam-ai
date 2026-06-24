@@ -60,20 +60,44 @@ export type Role = "USER" | "ADMIN" | "CREATOR" | string;
 
 export type RoadmapVisibility = "DRAFT" | "PUBLIC" | "PRIVATE" | "UNLISTED" | "ARCHIVED";
 
+export type RoadmapCategory = "TECHNOLOGY" | "ARTS" | "SCIENCE" | "HEALTH" | "BUSINESS" | "COOKING" | "LIFESTYLE" | "OTHER";
+
+export interface CommentResponse {
+  id: number;
+  content: string;
+  roadmapId: string;
+  userId: string;
+  userName: string;
+  userAvatarUrl?: string;
+  upvoteCount: number;
+  downvoteCount: number;
+  userVote?: 'UPVOTE' | 'DOWNVOTE';
+  replies: CommentResponse[];
+  createdAt: string;
+}
+
 export interface RoadmapResponse {
   id: string;
   title: string;
+  shortTitle?: string;
   description: string;
   status: string;
   visibility: RoadmapVisibility;
+  category: RoadmapCategory;
   userId: string;
+  userName: string;
+  userAvatarUrl?: string;
   difficulty: string;
   durationWeeks: number;
+  durationType: string;
+  durationValue: number;
   estimatedHoursPerDay: number;
   startDate?: string;
   milestoneCount: number;
   taskCount: number;
+  commentCount: number;
   forkedFromId?: string;
+  hasForked: boolean;
   upvoteCount: number;
   downvoteCount: number;
   forkCount: number;  
@@ -84,21 +108,28 @@ export interface RoadmapResponse {
 export interface CommunityRoadmapResponse {
   id: string;
   title: string;
+  shortTitle?: string;
   description: string;
   status: string;
   visibility: RoadmapVisibility;
+  category: RoadmapCategory;
   userId: string;
   userName: string;
+  userAvatarUrl?: string;
   difficulty: string;
   durationWeeks: number;
+  durationType: string;
+  durationValue: number;
   estimatedHoursPerDay: number;
   startDate?: string;
   milestoneCount: number;
   taskCount: number;
+  commentCount: number;
   upvoteCount: number;
   downvoteCount: number;
   userVote?: string;
   forkedFromId?: string;
+  hasForked: boolean;
   forkCount: number;
   createdAt: string;
   updatedAt: string;

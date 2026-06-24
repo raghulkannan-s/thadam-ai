@@ -13,6 +13,8 @@ import com.thadam.ai.modules.roadmap.core.domain.enums.RoadmapVisibility;
 public interface RoadmapRepository extends JpaRepository<Roadmap, Long> {
 
     java.util.Optional<Roadmap> findByPublicId(String publicId);
+    
+    boolean existsByUserIdAndForkedFromId(Long userId, Long forkedFromId);
 
     Page<Roadmap> findByUserId(Long userId, Pageable pageable);
 
@@ -22,16 +24,19 @@ public interface RoadmapRepository extends JpaRepository<Roadmap, Long> {
 
     List<Roadmap> findByVisibility(RoadmapVisibility visibility);
 
-    @Query("SELECT r FROM Roadmap r JOIN FETCH r.user WHERE r.visibility = com.thadam.ai.modules.roadmap.core.domain.enums.RoadmapVisibility.PUBLIC ORDER BY r.popularityScore DESC")
-    Page<Roadmap> findTrending(Pageable pageable);
+    @Query("SELECT r FROM Roadmap r JOIN FETCH r.user WHERE r.visibility = com.thadam.ai.modules.roadmap.core.domain.enums.RoadmapVisibility.PUBLIC AND (:category IS NULL OR r.category = :category) ORDER BY r.popularityScore DESC")
+    Page<Roadmap> findTrending(@org.springframework.data.repository.query.Param("category") com.thadam.ai.modules.roadmap.core.domain.enums.RoadmapCategory category, Pageable pageable);
 
-    @Query("SELECT r FROM Roadmap r JOIN FETCH r.user WHERE r.visibility = com.thadam.ai.modules.roadmap.core.domain.enums.RoadmapVisibility.PUBLIC ORDER BY r.createdAt DESC")
-    Page<Roadmap> findNewest(Pageable pageable);
+    @Query("SELECT r FROM Roadmap r JOIN FETCH r.user WHERE r.visibility = com.thadam.ai.modules.roadmap.core.domain.enums.RoadmapVisibility.PUBLIC AND (:category IS NULL OR r.category = :category) ORDER BY r.createdAt DESC")
+    Page<Roadmap> findNewest(@org.springframework.data.repository.query.Param("category") com.thadam.ai.modules.roadmap.core.domain.enums.RoadmapCategory category, Pageable pageable);
 
     Page<Roadmap> findByUserIdInAndVisibility(List<Long> userIds, RoadmapVisibility visibility, Pageable pageable);
 
-    @Query("SELECT r FROM Roadmap r WHERE r.visibility = com.thadam.ai.modules.roadmap.core.domain.enums.RoadmapVisibility.PUBLIC AND (LOWER(r.title) LIKE LOWER(CONCAT('%', :search, '%')) OR LOWER(r.description) LIKE LOWER(CONCAT('%', :search, '%')))")
-    Page<Roadmap> searchByTitleOrDescription(String search, Pageable pageable);
+    @Query("SELECT r FROM Roadmap r WHERE r.visibility = com.thadam.ai.modules.roadmap.core.domain.enums.RoadmapVisibility.PUBLIC AND (:category IS NULL OR r.category = :category) AND (LOWER(r.title) LIKE LOWER(CONCAT('%', :search, '%')) OR LOWER(r.description) LIKE LOWER(CONCAT('%', :search, '%')))")
+    Page<Roadmap> searchByTitleOrDescription(
+        @org.springframework.data.repository.query.Param("search") String search, 
+        @org.springframework.data.repository.query.Param("category") com.thadam.ai.modules.roadmap.core.domain.enums.RoadmapCategory category, 
+        Pageable pageable);
 
     long countByUserId(Long userId);
 

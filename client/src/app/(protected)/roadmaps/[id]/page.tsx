@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, use } from 'react';
-import { ArrowUpCircle, GitFork, Clock, Share2, Play, CheckCircle2, ChevronDown, ChevronUp, Target, Users, LayoutList, Circle } from 'lucide-react';
+import { ArrowUpCircle, GitFork, Clock, Share2, Play, CheckCircle2, ChevronDown, ChevronUp, Target, Users, LayoutList, Circle, MessageSquare } from 'lucide-react';
 import { Button } from '@/shared/ui/Button';
 import { Badge } from '@/shared/ui/Badge';
 import { Card } from '@/shared/ui/Card';
@@ -15,6 +15,7 @@ import { useForkRoadmap, useVoteRoadmap, useUpdateTaskStatus, useUpdateRoadmap, 
 import { useRouter } from 'next/navigation';
 import { TaskViewModal } from '@/features/roadmap/components/TaskViewModal';
 import { ForkModal } from '@/features/roadmap/components/ForkModal';
+import { RoadmapComments } from '@/features/community/components/RoadmapComments';
 import { TaskResponse } from '@/lib/types';
 
 export default function RoadmapContentPage({ params }: { params: Promise<{ id: string }> }) {
@@ -84,7 +85,9 @@ export default function RoadmapContentPage({ params }: { params: Promise<{ id: s
   // Stats calculation
   const completedCount = tasks.filter(t => t.status === "DONE").length;
   const completionRateNum = tasks.length > 0 ? Math.round((completedCount / tasks.length) * 100) : 0;
-  const duration = milestones && milestones.length > 0 ? `${milestones.length} Weeks` : "Unknown";
+  const duration = roadmap.durationValue && roadmap.durationType 
+    ? `${roadmap.durationValue} ${roadmap.durationType.toLowerCase()}` 
+    : (milestones && milestones.length > 0 ? `${milestones.length} Weeks` : "Unknown");
 
   // Finding next active task
   const nextTask = tasks.find(t => t.status === "IN_PROGRESS") || tasks.find(t => t.status === "TODO") || null;
@@ -118,10 +121,15 @@ export default function RoadmapContentPage({ params }: { params: Promise<{ id: s
     });
   };
 
-  const handleRegenerate = (visibility: string) => {
+  const handleRegenerate = (visibility: string, customPrompt?: string) => {
     if (!roadmap) return;
+    
+    const combinedPrompt = customPrompt?.trim() 
+      ? `${roadmap.title} - Additional instructions: ${customPrompt}`
+      : roadmap.title;
+
     generateRoadmap({
-      prompt: roadmap.title, // or any context we want, since it's a regeneration of the topic
+      prompt: combinedPrompt, // or any context we want, since it's a regeneration of the topic
       difficulty: roadmap.difficulty,
       durationWeeks: roadmap.durationWeeks,
       estimatedHoursPerDay: roadmap.estimatedHoursPerDay,
@@ -252,6 +260,8 @@ export default function RoadmapContentPage({ params }: { params: Promise<{ id: s
                 </Button>
               </div>
             )}
+
+
           </div>
         </div>
         
@@ -274,12 +284,27 @@ export default function RoadmapContentPage({ params }: { params: Promise<{ id: s
                  </Button>
                </>
              )}
+             <Button variant="ghost" size="md" onClick={() => { document.getElementById('comments-section')?.scrollIntoView({ behavior: 'smooth' }); }}>
+               <MessageSquare className="mr-2 h-5 w-5" /> {roadmap.commentCount > 0 ? `${roadmap.commentCount} Comments` : 'Comments'}
+             </Button>
              <Button variant="ghost" size="md" onClick={handleShare}>
                <Share2 className="mr-2 h-5 w-5" /> Share
              </Button>
-             {!isForked && (
-               <Button variant="outline" size="md" onClick={() => setIsForkModalOpen(true)} disabled={isForking || isGenerating}>
-                 <GitFork className="mr-2 h-5 w-5" /> Fork {roadmap.forkCount > 0 && `(${roadmap.forkCount})`}
+             {!isOwner && !isForked && (
+               <Button 
+                 variant={roadmap.hasForked ? "ghost" : "outline"} 
+                 size="md" 
+                 onClick={() => !roadmap.hasForked && setIsForkModalOpen(true)} 
+                 disabled={roadmap.hasForked || isForking || isGenerating}
+                 className={roadmap.hasForked ? "text-[var(--text-tertiary)]" : ""}
+               >
+                 <GitFork className="mr-2 h-5 w-5" /> 
+                 {roadmap.hasForked ? "Forked" : `Fork ${roadmap.forkCount > 0 ? `(${roadmap.forkCount})` : ''}`}
+               </Button>
+             )}
+             {isOwner && (
+               <Button variant="outline" size="md" onClick={() => setIsForkModalOpen(true)} disabled={isGenerating}>
+                 <Sparkles className="mr-2 h-5 w-5 text-[var(--warning)]" /> Regenerate
                </Button>
              )}
           </div>
@@ -287,7 +312,18 @@ export default function RoadmapContentPage({ params }: { params: Promise<{ id: s
       </div>
 
       {/* SECTION 2: The Learning Path (Milestones) */}
-      <h2 className="text-3xl font-extrabold tracking-tight mb-8">Journey Milestones</h2>
+      <div className="flex items-center justify-between mb-8">
+        <h2 className="text-3xl font-extrabold tracking-tight">Journey Milestones</h2>
+      </div>
+
+      {!isOwner && !roadmap.hasForked && (
+        <div className="mb-8 px-5 py-4 bg-[var(--accent-primary)]/5 rounded-xl border border-[var(--accent-primary)]/20 flex items-start sm:items-center gap-3">
+          <GitFork className="h-5 w-5 text-[var(--accent-primary)] shrink-0 mt-0.5 sm:mt-0" />
+          <p className="text-sm text-[var(--text-secondary)] leading-relaxed flex-1">
+            <strong className="text-[var(--text-primary)] font-semibold">Want to track your progress?</strong> Fork this roadmap to your own account so you can start checking off tasks and tracking milestones.
+          </p>
+        </div>
+      )}
       
       {(!milestones || milestones.length === 0) ? (
          <EmptyState title="No Milestones" description="This roadmap doesn't have any content yet." />
@@ -384,6 +420,11 @@ export default function RoadmapContentPage({ params }: { params: Promise<{ id: s
          </div>
       )}
 
+      {/* SECTION 3: Community Comments */}
+      <div id="comments-section">
+        <RoadmapComments roadmapId={roadmapId} />
+      </div>
+
       {/* Task Modal Integration */}
       <TaskViewModal 
          isOpen={!!activeTask}
@@ -406,6 +447,7 @@ export default function RoadmapContentPage({ params }: { params: Promise<{ id: s
         onRegenerate={handleRegenerate}
         isForking={isForking}
         isRegenerating={isGenerating}
+        isOwner={isOwner}
       />
     </div>
   );

@@ -176,8 +176,8 @@ export function SlidingAuth({ defaultMode }: { defaultMode: "login" | "register"
         
         {/* LEFT HALF (Visible during Login mode, Form is on the Right) */}
         <div className={`hidden lg:flex flex-col w-1/2 h-full items-center justify-center p-12 text-center relative z-0 transition-all duration-500 ${mode === "login" ? "opacity-100" : "opacity-0 scale-95 pointer-events-none"}`}>
-          <div className="inline-flex items-center justify-center w-12 h-12 rounded-xl bg-[var(--bg-elevated)] text-[var(--text-primary)] shadow-lg mb-6 border border-[var(--border-subtle)]">
-            <span className="text-2xl font-black text-[var(--accent-primary)]">T</span>
+          <div className="inline-flex items-center justify-center w-[62px] h-[62px] mb-6">
+            <img src="/assets/logo-no-bg.png" alt="Thadam AI Logo" className="w-full h-full object-contain" />
           </div>
           <h2 className="text-3xl font-extrabold tracking-tight text-[var(--text-primary)] mb-4 leading-tight">
             New to <span className="text-[var(--accent-primary)]">Thadam AI?</span>
@@ -196,8 +196,8 @@ export function SlidingAuth({ defaultMode }: { defaultMode: "login" | "register"
 
         {/* RIGHT HALF (Visible during Register mode, Form is on the Left) */}
         <div className={`hidden lg:flex flex-col w-1/2 h-full items-center justify-center p-12 text-center relative z-0 transition-all duration-500 ${mode === "register" ? "opacity-100" : "opacity-0 scale-95 pointer-events-none"}`}>
-          <div className="inline-flex items-center justify-center w-12 h-12 rounded-xl bg-[var(--accent-primary)] text-white shadow-lg shadow-[var(--accent-primary)]/30 mb-6">
-            <Sparkles className="h-6 w-6" />
+          <div className="inline-flex items-center justify-center w-[62px] h-[62px] mb-6">
+            <img src="/assets/logo-no-bg.png" alt="Thadam AI Logo" className="w-full h-full object-contain" />
           </div>
           <h2 className="text-3xl font-extrabold tracking-tight text-[var(--text-primary)] mb-4 leading-tight">
             Welcome <span className="text-[var(--accent-primary)]">Back!</span>
@@ -220,12 +220,11 @@ export function SlidingAuth({ defaultMode }: { defaultMode: "login" | "register"
           animate={mode}
           variants={formVariants}
           transition={{ type: "spring", stiffness: 350, damping: 35 }}
-          className="absolute top-0 left-0 w-full lg:w-1/2 h-full z-20 bg-white/90 dark:bg-black/80 backdrop-blur-[40px] rounded-[2rem] shadow-2xl flex items-center justify-center p-6 sm:p-10 lg:p-12 overflow-y-auto border border-white/40 dark:border-white/10"
+          className="absolute top-0 left-0 w-full lg:w-1/2 h-full z-20 bg-white dark:bg-[var(--bg-elevated)] rounded-[2rem] shadow-2xl flex items-center justify-center p-6 lg:p-8 overflow-y-auto border border-[var(--border-subtle)] [&::-webkit-scrollbar]:hidden [-ms-overflow-style:'none'] [scrollbar-width:'none']"
         >
-          {/* Beautiful Bright Blue Tint Overlay */}
-          <div className="absolute inset-0 bg-gradient-to-br from-[var(--accent-primary)]/5 to-[var(--accent-primary)]/20 pointer-events-none rounded-[2rem]" />
+          {/* Removed gradient overlay per user request */}
           
-          <div className="w-full max-w-[340px] my-auto relative z-10">
+          <div className="w-full max-w-[380px] my-auto relative z-10">
             <AnimatePresence mode="wait">
               <motion.div
                 key={mode}
@@ -235,7 +234,7 @@ export function SlidingAuth({ defaultMode }: { defaultMode: "login" | "register"
                 exit="exit"
                 transition={{ duration: 0.2 }}
               >
-                <div className="text-center mb-6 lg:text-left">
+                <div className="text-center mb-5 lg:text-left">
                   <h1 className="text-2xl font-black tracking-tight text-[var(--text-primary)] mb-2">
                     {mode === "login" ? "Sign In" : "Create Account"}
                   </h1>
@@ -247,7 +246,7 @@ export function SlidingAuth({ defaultMode }: { defaultMode: "login" | "register"
                 </div>
 
                 {(sessionMessage || error) && (
-                  <div className="mb-5 p-3 rounded-xl border border-red-500/20 bg-red-500/10 text-red-600 flex items-start gap-2">
+                  <div className="mb-4 p-3 rounded-xl border border-red-500/20 bg-red-500/10 text-red-600 flex items-start gap-2">
                     <div className="mt-0.5">
                       <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -260,7 +259,7 @@ export function SlidingAuth({ defaultMode }: { defaultMode: "login" | "register"
                 <form onSubmit={onSubmit} className="space-y-3.5">
                   {mode === "register" && (
                     <div className="space-y-1.5">
-                      <label className="text-xs font-bold text-[var(--text-primary)]" htmlFor="register-name">Display Name</label>
+                      <label className="text-sm font-bold text-[var(--text-primary)]" htmlFor="register-name">Display Name</label>
                       <div className="relative group">
                         <div className="absolute inset-y-0 left-0 flex items-center pl-3.5 pointer-events-none text-[var(--text-tertiary)] group-focus-within:text-[var(--accent-primary)] transition-colors">
                           <User className="h-4 w-4" />
@@ -268,7 +267,7 @@ export function SlidingAuth({ defaultMode }: { defaultMode: "login" | "register"
                         <input
                           id="register-name"
                           type="text"
-                          className="w-full bg-[var(--bg-elevated)] border border-[var(--border-subtle)] text-[var(--text-primary)] rounded-xl py-2.5 pl-10 pr-3.5 focus:ring-2 focus:ring-[var(--accent-primary)]/20 focus:border-[var(--accent-primary)] transition-all outline-none text-sm font-medium placeholder-[var(--text-tertiary)] shadow-sm"
+                          className="w-full bg-[var(--bg-elevated)] border border-[var(--border-subtle)] text-[var(--text-primary)] rounded-xl py-2.5 pl-11 pr-4 focus:ring-2 focus:ring-[var(--accent-primary)]/20 focus:border-[var(--accent-primary)] transition-all outline-none text-[0.9rem] font-medium placeholder-[var(--text-tertiary)] shadow-sm"
                           placeholder="Raghul"
                           value={displayName}
                           onChange={(e) => setDisplayName(e.target.value)}
@@ -280,7 +279,7 @@ export function SlidingAuth({ defaultMode }: { defaultMode: "login" | "register"
                   )}
 
                   <div className="space-y-1.5">
-                    <label className="text-xs font-bold text-[var(--text-primary)]" htmlFor="auth-email">Email Address</label>
+                    <label className="text-sm font-bold text-[var(--text-primary)]" htmlFor="auth-email">Email Address</label>
                     <div className="relative group">
                       <div className="absolute inset-y-0 left-0 flex items-center pl-3.5 pointer-events-none text-[var(--text-tertiary)] group-focus-within:text-[var(--accent-primary)] transition-colors">
                         <Mail className="h-4 w-4" />
@@ -288,7 +287,7 @@ export function SlidingAuth({ defaultMode }: { defaultMode: "login" | "register"
                       <input
                         id="auth-email"
                         type="email"
-                        className="w-full bg-[var(--bg-elevated)] border border-[var(--border-subtle)] text-[var(--text-primary)] rounded-xl py-2.5 pl-10 pr-3.5 focus:ring-2 focus:ring-[var(--accent-primary)]/20 focus:border-[var(--accent-primary)] transition-all outline-none text-sm font-medium placeholder-[var(--text-tertiary)] shadow-sm"
+                        className="w-full bg-[var(--bg-elevated)] border border-[var(--border-subtle)] text-[var(--text-primary)] rounded-xl py-2.5 pl-11 pr-4 focus:ring-2 focus:ring-[var(--accent-primary)]/20 focus:border-[var(--accent-primary)] transition-all outline-none text-[0.9rem] font-medium placeholder-[var(--text-tertiary)] shadow-sm"
                         placeholder="name@example.com"
                         value={email}
                         onChange={(e) => setEmail(e.target.value)}
@@ -300,7 +299,7 @@ export function SlidingAuth({ defaultMode }: { defaultMode: "login" | "register"
 
                   <div className="space-y-1.5">
                     <div className="flex items-center justify-between">
-                      <label className="text-xs font-bold text-[var(--text-primary)]" htmlFor="auth-password">Password</label>
+                      <label className="text-sm font-bold text-[var(--text-primary)]" htmlFor="auth-password">Password</label>
                       {mode === "login" && (
                         <Link href="#" className="text-xs font-semibold text-[var(--accent-primary)] hover:underline">
                           Forgot password?
@@ -314,7 +313,7 @@ export function SlidingAuth({ defaultMode }: { defaultMode: "login" | "register"
                       <input
                         id="auth-password"
                         type={showPassword ? "text" : "password"}
-                        className="w-full bg-[var(--bg-elevated)] border border-[var(--border-subtle)] text-[var(--text-primary)] rounded-xl py-2.5 pl-10 pr-10 focus:ring-2 focus:ring-[var(--accent-primary)]/20 focus:border-[var(--accent-primary)] transition-all outline-none text-sm font-medium placeholder-[var(--text-tertiary)] shadow-sm"
+                        className="w-full bg-[var(--bg-elevated)] border border-[var(--border-subtle)] text-[var(--text-primary)] rounded-xl py-2.5 pl-11 pr-12 focus:ring-2 focus:ring-[var(--accent-primary)]/20 focus:border-[var(--accent-primary)] transition-all outline-none text-[0.9rem] font-medium placeholder-[var(--text-tertiary)] shadow-sm"
                         placeholder={mode === "login" ? "Enter your password" : "8+ chars, uppercase, number"}
                         value={password}
                         onChange={(e) => setPassword(e.target.value)}
@@ -353,7 +352,7 @@ export function SlidingAuth({ defaultMode }: { defaultMode: "login" | "register"
                   {mode === "register" && (
                     <div className="space-y-1.5">
                       <div className="flex items-center justify-between">
-                        <label className="text-xs font-bold text-[var(--text-primary)]" htmlFor="auth-confirm-password">Confirm Password</label>
+                        <label className="text-sm font-bold text-[var(--text-primary)]" htmlFor="auth-confirm-password">Confirm Password</label>
                       </div>
                       <div className="relative group">
                         <div className="absolute inset-y-0 left-0 flex items-center pl-3.5 pointer-events-none text-[var(--text-tertiary)] group-focus-within:text-[var(--accent-primary)] transition-colors">
@@ -362,7 +361,7 @@ export function SlidingAuth({ defaultMode }: { defaultMode: "login" | "register"
                         <input
                           id="auth-confirm-password"
                           type={showPassword ? "text" : "password"}
-                          className="w-full bg-[var(--bg-elevated)] border border-[var(--border-subtle)] text-[var(--text-primary)] rounded-xl py-2.5 pl-10 pr-10 focus:ring-2 focus:ring-[var(--accent-primary)]/20 focus:border-[var(--accent-primary)] transition-all outline-none text-sm font-medium placeholder-[var(--text-tertiary)] shadow-sm"
+                          className="w-full bg-[var(--bg-elevated)] border border-[var(--border-subtle)] text-[var(--text-primary)] rounded-xl py-2.5 pl-11 pr-12 focus:ring-2 focus:ring-[var(--accent-primary)]/20 focus:border-[var(--accent-primary)] transition-all outline-none text-[0.9rem] font-medium placeholder-[var(--text-tertiary)] shadow-sm"
                           placeholder="Confirm your password"
                           value={confirmPassword}
                           onChange={(e) => setConfirmPassword(e.target.value)}
@@ -377,7 +376,7 @@ export function SlidingAuth({ defaultMode }: { defaultMode: "login" | "register"
                   <Button
                     type="submit"
                     variant="primary"
-                    className="w-full h-10 text-sm font-bold mt-2 shadow-lg shadow-[var(--accent-primary)]/20 hover:shadow-[var(--accent-primary)]/30 group"
+                    className="w-full h-11 text-[0.95rem] font-bold mt-3 shadow-lg shadow-[var(--accent-primary)]/20 hover:shadow-[var(--accent-primary)]/30 group"
                     disabled={loading}
                   >
                     {loading ? (
@@ -388,7 +387,7 @@ export function SlidingAuth({ defaultMode }: { defaultMode: "login" | "register"
                   </Button>
                 </form>
 
-                <div className="mt-6 relative">
+                <div className="mt-5 relative">
                   <div className="absolute inset-0 flex items-center">
                     <div className="w-full border-t border-[var(--border-subtle)]"></div>
                   </div>
@@ -402,14 +401,14 @@ export function SlidingAuth({ defaultMode }: { defaultMode: "login" | "register"
                     onClick={handleOAuth}
                     disabled={oauthLoading}
                     variant="outline"
-                    className="w-full h-10 text-sm font-bold border-[var(--border-subtle)] hover:bg-[var(--bg-surface)] hover:border-[var(--text-tertiary)] text-[var(--text-primary)] transition-all"
+                    className="w-full h-11 text-[0.95rem] font-bold border-[var(--border-subtle)] hover:bg-[var(--bg-surface)] hover:border-[var(--text-tertiary)] text-[var(--text-primary)] transition-all"
                   >
                     {oauthLoading ? <Spinner size={16} className="mr-2" /> : <GoogleIcon />}
                     Google
                   </Button>
                 </div>
 
-                <p className="mt-6 text-center text-xs text-[var(--text-secondary)] font-medium lg:hidden">
+                <p className="mt-5 text-center text-sm text-[var(--text-secondary)] font-medium lg:hidden">
                   {mode === "login" ? "Don't have an account? " : "Already have an account? "}
                   <button 
                     onClick={() => switchMode(mode === "login" ? "register" : "login")}

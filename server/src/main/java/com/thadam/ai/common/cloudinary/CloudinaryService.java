@@ -33,7 +33,9 @@ public class CloudinaryService {
             return uploadResult.get("secure_url").toString();
         } catch (Exception e) {
             log.error("Failed to upload image to Cloudinary", e);
-            throw new RuntimeException("Image upload failed", e);
+            throw new org.springframework.web.server.ResponseStatusException(
+                org.springframework.http.HttpStatus.BAD_REQUEST, 
+                "Image upload failed: Invalid Cloudinary configuration. Please verify your CLOUDINARY_URL in .env", e);
         }
     }
 }

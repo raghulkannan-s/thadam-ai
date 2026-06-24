@@ -20,10 +20,10 @@ Framer Motion 12.40 | MapStruct 1.6.3 | Zoho AppSail (Hosting)
 
 ## Features
 
-- **AI Roadmap Generation** — Describe a learning goal, pick a duration and difficulty, and Gemini produces a structured roadmap with milestones and tasks
+- **AI Roadmap Generation** — Describe a learning goal, pick a duration and difficulty, and our asynchronous background worker uses Gemini to generate a structured roadmap without blocking your session
 - **Interactive Checklists** — Expand roadmaps to see milestones, drill into tasks, update statuses (TODO → IN_PROGRESS → DONE)
-- **Gamified Progress** — Earn coins for completing tasks via a ledger system
-- **JWT Authentication** — Secure access/refresh token rotation with in-memory access token and localStorage refresh token
+- **Gamified Progress** — Earn coins for completing tasks via a highly consistent transactional ledger system
+- **JWT Authentication** — Secure access and True Refresh Token Rotation (RTR) to prevent session hijacking
 - **Google OAuth2** — Sign in with Google for a frictionless onboarding
 - **Role-Based Access** — USER, MODERATOR, ADMIN roles with admin panel, role-gated sidebar navigation
 - **Community Discovery** — Browse all public roadmaps with search, upvote/downvote, and fork them to your dashboard

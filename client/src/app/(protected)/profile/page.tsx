@@ -136,10 +136,10 @@ export default function ProfilePage() {
         <h3 style={{ fontSize: "0.9rem", fontWeight: 700, color: "var(--text-primary)", marginBottom: "16px" }}>Account Details</h3>
         <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
           {[
-            { label: "User ID", value: `#${user.id}` },
             { label: "Name", value: user.name },
             { label: "Email", value: user.email },
             { label: "Role", value: user.role === 'USER' ? 'LEARNER' : user.role },
+            { label: "User ID", value: `#${user.id}` },
           ].map((item) => (
             <div key={item.label} style={{ display: "flex", justifyContent: "space-between", padding: "8px 0", borderBottom: "1px solid var(--border-subtle)", fontSize: "0.85rem" }}>
               <span style={{ color: "var(--text-secondary)" }}>{item.label}</span>

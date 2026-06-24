@@ -115,6 +115,66 @@ export function useUpdateRoadmap() {
   });
 }
 
+export function useAddComment() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({ roadmapId, content, parentId }: { roadmapId: string; content: string; parentId?: number }) => {
+      const res = await apiFetch(`/api/roadmaps/${roadmapId}/comments`, {
+        method: "POST",
+        body: JSON.stringify({ content, parentId }),
+      });
+      return res.data;
+    },
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: ["roadmaps", variables.roadmapId, "comments"] });
+    },
+    onError: (error: Error) => {
+      toast.error(error.message || "Failed to add comment.");
+    },
+  });
+}
+
+export function useDeleteComment() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({ roadmapId, commentId }: { roadmapId: string; commentId: number }) => {
+      const res = await apiFetch(`/api/roadmaps/${roadmapId}/comments/${commentId}`, {
+        method: "DELETE",
+      });
+      return res.data;
+    },
+    onSuccess: (_, variables) => {
+      toast.success("Comment deleted");
+      queryClient.invalidateQueries({ queryKey: ["roadmaps", variables.roadmapId, "comments"] });
+    },
+    onError: (error: Error) => {
+      toast.error(error.message || "Failed to delete comment.");
+    },
+  });
+}
+
+export function useVoteComment() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({ commentId, type }: { commentId: number; type: 'UPVOTE' | 'DOWNVOTE' }) => {
+      const res = await apiFetch(`/api/roadmaps/comments/${commentId}/votes`, {
+        method: "POST",
+        body: JSON.stringify({ type }),
+      });
+      return res.data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["roadmaps"] }); // Invalidate all roadmaps/comments query since it's nested
+    },
+    onError: (error: Error) => {
+      toast.error(error.message || "Failed to vote on comment.");
+    },
+  });
+}
+
 export function useVerifyUser() {
   const queryClient = useQueryClient();
 

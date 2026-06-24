@@ -64,11 +64,19 @@ public class RefreshTokenService {
             throw new UnauthorizedException("Refresh token expired. Please login again.");
         }
 
-        token.setLastUsedAt(LocalDateTime.now());
-        // Optional: extend the expiration date
-        token.setExpiryDate(toLocalDateTime(Instant.now().plusMillis(refreshExpiration)));
+        // Revoke the old token value to prevent reuse if captured (True RTR)
+        token.setRevoked(true);
+        refreshTokenRepository.save(token);
+
+        // Create a new token for the user
+        RefreshToken newToken = RefreshToken.builder()
+                .token(UUID.randomUUID().toString() + "-" + UUID.randomUUID().toString())
+                .user(token.getUser())
+                .expiryDate(toLocalDateTime(Instant.now().plusMillis(refreshExpiration)))
+                .rotationVersion(token.getRotationVersion() + 1)
+                .build();
         
-        return refreshTokenRepository.save(token);
+        return refreshTokenRepository.save(newToken);
     }
 
     @Transactional

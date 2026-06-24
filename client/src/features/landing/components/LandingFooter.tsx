@@ -26,22 +26,15 @@ export default function LandingFooter() {
         {/* Brand */}
         <div>
           <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 16 }}>
-            <div
+            <img
+              src="/assets/logo-no-bg.png"
+              alt="Thadam AI Logo"
               style={{
-                width: 28,
-                height: 28,
-                borderRadius: 7,
-                background: "var(--accent-primary)",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                color: "#fff",
-                fontWeight: 800,
-                fontSize: "0.75rem",
+                width: 36,
+                height: 36,
+                objectFit: "contain",
               }}
-            >
-              T
-            </div>
+            />
             <span style={{ fontSize: "0.95rem", fontWeight: 700, color: "var(--text-primary)", letterSpacing: "-0.02em" }}>
               Thadam AI
             </span>
