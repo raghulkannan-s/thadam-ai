@@ -83,7 +83,6 @@ export function useGenerateRoadmap() {
       return res.data;
     },
     onSuccess: () => {
-      toast.success("Roadmap generated!");
       queryClient.invalidateQueries({ queryKey: ["roadmaps"] });
     },
     onError: (error: Error) => {
