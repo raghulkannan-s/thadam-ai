@@ -78,10 +78,6 @@ export function useRoadmap(id: string) {
       const res = await apiFetch<CommunityRoadmapResponse>(`/api/roadmaps/${id}`);
       return res.data;
     },
-    refetchInterval: (query) => {
-      const status = (query.state.data as any)?.status;
-      return status === 'GENERATING' ? 2000 : false;
-    },
   });
 }
 

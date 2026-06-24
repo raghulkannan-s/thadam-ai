@@ -24,7 +24,6 @@ import com.thadam.ai.modules.roadmap.infrastructure.repositories.TaskRepository;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.slf4j.MDC;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -48,11 +47,11 @@ public class RoadmapGenerationService {
     private final RoadmapService roadmapService;
     private final AuditService auditService;
     private final LedgerService ledgerService;
-    private final RoadmapAsyncWorker roadmapAsyncWorker;
-    private final org.springframework.transaction.support.TransactionTemplate transactionTemplate;
 
     @Transactional
     public RoadmapResponse generateRoadmap(com.thadam.ai.modules.roadmap.core.application.dtos.RoadmapGenerationRequest request, User user) {
+        long startTime = System.currentTimeMillis();
+
         long currentBalance = ledgerService.getBalance(user.getId()).balance();
         int cost = Boolean.TRUE.equals(request.isRegeneration()) ? 3 : 10;
         if (currentBalance < cost) {
@@ -63,32 +62,7 @@ public class RoadmapGenerationService {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Prompt too long. Maximum 2000 characters allowed.");
         }
 
-        // Create a stub roadmap immediately
-        Roadmap roadmap = Roadmap.builder()
-                .title(Boolean.TRUE.equals(request.isRegeneration()) ? "Regenerating Roadmap..." : "Generating Roadmap...")
-                .description("Our AI is crafting a custom roadmap. This usually takes 5-10 seconds.")
-                .user(user)
-                .category(request.category() != null ? com.thadam.ai.modules.roadmap.core.domain.enums.RoadmapCategory.valueOf(request.category()) : com.thadam.ai.modules.roadmap.core.domain.enums.RoadmapCategory.OTHER)
-                .visibility(request.visibility() != null ? RoadmapVisibility.valueOf(request.visibility()) : RoadmapVisibility.PRIVATE)
-                .status(com.thadam.ai.modules.roadmap.core.domain.enums.RoadmapStatus.GENERATING)
-                .difficulty(request.difficulty())
-                .durationWeeks(request.durationWeeks() != null ? request.durationWeeks() : (request.durationValue() != null ? request.durationValue() : 4))
-                .durationType(request.durationType() != null ? request.durationType() : "WEEKS")
-                .durationValue(request.durationValue() != null ? request.durationValue() : (request.durationWeeks() != null ? request.durationWeeks() : 4))
-                .estimatedHoursPerDay(request.estimatedHoursPerDay())
-                .startDate(request.startDate())
-                .build();
-        
-        roadmap = roadmapRepository.save(roadmap);
-
-        // Fire background task
-        roadmapAsyncWorker.executeGenerationAsync(roadmap.getId(), request, user, MDC.get("correlationId"));
-
-        return roadmapService.getRoadmapById(roadmap.getPublicId(), user);
-    }
-
-    public void processAsyncGeneration(Long roadmapId, com.thadam.ai.modules.roadmap.core.application.dtos.RoadmapGenerationRequest request, User user) {
-        long startTime = System.currentTimeMillis();
+        // Generate the roadmap synchronously — no stub, no async
         try {
             String promptTemplate = loadPromptTemplate();
             String fullPrompt = promptTemplate.replace("{userPrompt}", request.prompt());
@@ -103,23 +77,18 @@ public class RoadmapGenerationService {
                     validateJsonStructure(cleanedJson);
                     break;
                 } catch (Exception ex) {
+                    log.warn("AI generation attempt {} failed: {}", attempt, ex.getMessage());
                     if (attempt == maxAttempts) {
-                        throw new RuntimeException("Validation failed after " + maxAttempts + " attempts: " + ex.getMessage(), ex);
+                        throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR,
+                                "Roadmap generation failed after " + maxAttempts + " attempts. No coins were deducted. Please try again.");
                     }
                 }
             }
 
-            final String finalCleanedJson = cleanedJson;
-            transactionTemplate.execute(status -> {
-                Roadmap rm = roadmapRepository.findById(roadmapId).orElseThrow();
-                parseAndUpdate(finalCleanedJson, rm, request);
-                rm.setStatus(com.thadam.ai.modules.roadmap.core.domain.enums.RoadmapStatus.ACTIVE);
-                roadmapRepository.save(rm);
-                return null;
-            });
+            // Parse the AI response and create the real roadmap with proper title/milestones/tasks
+            Roadmap roadmap = parseAndSave(cleanedJson, user, request);
 
             // Deduct coins only on success
-            int cost = Boolean.TRUE.equals(request.isRegeneration()) ? 3 : 10;
             ledgerService.addTransaction(user, new CoinTransactionRequest(
                     cost,
                     TransactionType.SPENT,
@@ -128,16 +97,16 @@ public class RoadmapGenerationService {
                     null
             ));
 
-            log.info("ROADMAP_GENERATION_COMPLETED userId={} roadmapId={} duration={}ms", user.getId(), roadmapId, System.currentTimeMillis() - startTime);
+            log.info("ROADMAP_GENERATION_COMPLETED userId={} roadmapId={} duration={}ms", user.getId(), roadmap.getId(), System.currentTimeMillis() - startTime);
+
+            return roadmapService.getRoadmapById(roadmap.getPublicId(), user);
+
+        } catch (ResponseStatusException e) {
+            throw e; // Re-throw our own exceptions as-is
         } catch (Exception e) {
-            log.error("ROADMAP_GENERATION_FAILED userId={} roadmapId={}", user.getId(), roadmapId, e);
-            transactionTemplate.execute(status -> {
-                roadmapRepository.findById(roadmapId).ifPresent(rm -> {
-                    rm.setStatus(com.thadam.ai.modules.roadmap.core.domain.enums.RoadmapStatus.FAILED);
-                    roadmapRepository.save(rm);
-                });
-                return null;
-            });
+            log.error("ROADMAP_GENERATION_FAILED userId={}", user.getId(), e);
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR,
+                    "Roadmap generation failed. No coins were deducted. Please try again.");
         }
     }
 
@@ -231,44 +200,6 @@ public class RoadmapGenerationService {
         return trimmed.trim();
     }
 
-    private void parseAndUpdate(String json, Roadmap roadmap, com.thadam.ai.modules.roadmap.core.application.dtos.RoadmapGenerationRequest request) {
-        try {
-            JsonNode root = objectMapper.readTree(json);
-
-            roadmap.setTitle(root.get("title").asText());
-            roadmap.setShortTitle(root.has("shortTitle") ? root.get("shortTitle").asText() : null);
-            roadmap.setDescription(root.has("description") ? root.get("description").asText() : null);
-
-            JsonNode milestonesNode = root.get("milestones");
-            int mIndex = 1;
-            for (JsonNode mNode : milestonesNode) {
-                Milestone milestone = Milestone.builder()
-                        .roadmap(roadmap)
-                        .title(mNode.get("title").asText())
-                        .description(mNode.has("description") ? mNode.get("description").asText() : null)
-                        .orderIndex(mIndex++)
-                        .build();
-                milestone = milestoneRepository.save(milestone);
-
-                if (mNode.has("tasks")) {
-                    int tIndex = 1;
-                    for (JsonNode tNode : mNode.get("tasks")) {
-                        Task task = Task.builder()
-                                .roadmap(roadmap)
-                                .milestone(milestone)
-                                .title(tNode.get("title").asText())
-                                .description(tNode.has("description") ? tNode.get("description").asText() : null)
-                                .priority(tNode.has("priority") ? TaskPriority.valueOf(tNode.get("priority").asText().toUpperCase()) : TaskPriority.MEDIUM)
-                                .orderIndex(tIndex++)
-                                .build();
-                        taskRepository.save(task);
-                    }
-                }
-            }
-        } catch (Exception e) {
-            throw new RuntimeException("Failed to parse and update roadmap", e);
-        }
-    }
 
     private Roadmap parseAndSave(String json, User user, com.thadam.ai.modules.roadmap.core.application.dtos.RoadmapGenerationRequest request) {
         try {
