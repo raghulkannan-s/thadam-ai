@@ -8,7 +8,9 @@ import apiClient from '@/core/api/client';
 import { toast } from 'sonner';
 import { useSearchParams, useRouter } from 'next/navigation';
 
-export default function ProPage() {
+import { Suspense } from 'react';
+
+function ProPageContent() {
   const { user, refresh } = useAuth();
   const [loading, setLoading] = useState<string | null>(null);
   const searchParams = useSearchParams();
@@ -259,5 +261,13 @@ export default function ProPage() {
 
       </div>
     </div>
+  );
+}
+
+export default function ProPage() {
+  return (
+    <Suspense fallback={null}>
+      <ProPageContent />
+    </Suspense>
   );
 }

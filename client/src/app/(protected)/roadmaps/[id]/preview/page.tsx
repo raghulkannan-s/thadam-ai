@@ -100,6 +100,8 @@ export default function PreviewRoadmapPage({ params }: { params: Promise<{ id: s
       difficulty: roadmap.difficulty,
       durationWeeks: roadmap.durationWeeks,
       estimatedHoursPerDay: roadmap.estimatedHoursPerDay,
+      durationType: roadmap.durationType || "WEEKS",
+      durationValue: roadmap.durationValue || roadmap.durationWeeks,
       additionalContext
     });
     
@@ -107,6 +109,8 @@ export default function PreviewRoadmapPage({ params }: { params: Promise<{ id: s
       prompt,
       difficulty: roadmap.difficulty,
       durationWeeks: roadmap.durationWeeks,
+      durationValue: roadmap.durationValue || roadmap.durationWeeks,
+      durationType: roadmap.durationType || "WEEKS",
       estimatedHoursPerDay: roadmap.estimatedHoursPerDay,
       visibility: roadmap.visibility || 'PUBLIC',
       isRegeneration: true

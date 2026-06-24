@@ -14,7 +14,9 @@ import {
   FinalCTASection
 } from "@/features/landing/components/TopDownSections";
 
-export default function Home() {
+import { Suspense } from "react";
+
+function HomeContent() {
   const scrollRef = useRef<HTMLDivElement>(null);
   const { user, status } = useAuth();
   const router = useRouter();
@@ -45,5 +47,13 @@ export default function Home() {
         <FinalCTASection />
       </div>
     </div>
+  );
+}
+
+export default function Home() {
+  return (
+    <Suspense fallback={null}>
+      <HomeContent />
+    </Suspense>
   );
 }
