@@ -47,8 +47,8 @@ public class RoadmapGenerationService {
     private final RoadmapService roadmapService;
     private final AuditService auditService;
     private final LedgerService ledgerService;
+    private final org.springframework.transaction.support.TransactionTemplate transactionTemplate;
 
-    @Transactional
     public RoadmapResponse generateRoadmap(com.thadam.ai.modules.roadmap.core.application.dtos.RoadmapGenerationRequest request, User user) {
         long startTime = System.currentTimeMillis();
 
@@ -85,17 +85,21 @@ public class RoadmapGenerationService {
                 }
             }
 
-            // Parse the AI response and create the real roadmap with proper title/milestones/tasks
-            Roadmap roadmap = parseAndSave(cleanedJson, user, request);
+            // Parse the AI response and create the real roadmap inside a small database transaction
+            final String finalCleanedJson = cleanedJson;
+            Roadmap roadmap = transactionTemplate.execute(status -> {
+                Roadmap savedRoadmap = parseAndSave(finalCleanedJson, user, request);
 
-            // Deduct coins only on success
-            ledgerService.addTransaction(user, new CoinTransactionRequest(
-                    cost,
-                    TransactionType.SPENT,
-                    Boolean.TRUE.equals(request.isRegeneration()) ? "AI Roadmap Regeneration" : "AI Roadmap Generation",
-                    "ROADMAP_GENERATION",
-                    null
-            ));
+                // Deduct coins only on success
+                ledgerService.addTransaction(user, new CoinTransactionRequest(
+                        cost,
+                        TransactionType.SPENT,
+                        Boolean.TRUE.equals(request.isRegeneration()) ? "AI Roadmap Regeneration" : "AI Roadmap Generation",
+                        "ROADMAP_GENERATION",
+                        null
+                ));
+                return savedRoadmap;
+            });
 
             log.info("ROADMAP_GENERATION_COMPLETED userId={} roadmapId={} duration={}ms", user.getId(), roadmap.getId(), System.currentTimeMillis() - startTime);
 
