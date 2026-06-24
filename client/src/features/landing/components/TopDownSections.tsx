@@ -35,65 +35,31 @@ function SectionWrapper({ children, id }: { children: React.ReactNode; id: strin
   );
 }
 
-export function GenerateSection() {
+export function CreatePathSection() {
   return (
-    <SectionWrapper id="generate">
+    <SectionWrapper id="create">
       <div className="text-content">
-        <div className="section-label">01. Generate</div>
+        <div className="section-label">Step 01</div>
         <h2 className="section-title">From goal to roadmap in seconds.</h2>
         <p className="section-description">
-          Stop wondering where to start. Describe what you want to achieve, and our AI instantly maps out a structured, step-by-step learning path tailored to your exact needs.
+          Describe your goal, set your weekly hours, and choose your difficulty. Our AI instantly maps out a tailored, step-by-step learning path specifically for you.
         </p>
       </div>
-      {/* Visual content removed to feature the 3D aircraft exclusively */}
       <div className="visual-content"></div>
     </SectionWrapper>
   );
 }
 
-export function CustomizeSection() {
-  return (
-    <SectionWrapper id="customize">
-      <div className="text-content">
-        <div className="section-label">02. Customize</div>
-        <h2 className="section-title">Adjust your flight plan.</h2>
-        <p className="section-description">
-          Fine-tune the pacing to fit your lifestyle. Adjust your weekly hour commitment, current skill level, and milestone visibility to make the path truly yours.
-        </p>
-      </div>
-      {/* Visual content removed to feature the 3D aircraft exclusively */}
-      <div className="visual-content"></div>
-    </SectionWrapper>
-  );
-}
-
-export function LearnSection() {
+export function LearnTrackSection() {
   return (
     <SectionWrapper id="learn">
       <div className="text-content">
-        <div className="section-label">03. Learn</div>
+        <div className="section-label">Step 02</div>
         <h2 className="section-title">One step at a time.</h2>
         <p className="section-description">
-          Massive goals are broken down into achievable milestones and bite-sized daily tasks. Focus on what's right in front of you, and watch the mountain disappear.
+          Massive goals are broken down into achievable milestones and bite-sized daily tasks. Track your completion rate and build learning streaks.
         </p>
       </div>
-      {/* Visual content removed to feature the 3D aircraft exclusively */}
-      <div className="visual-content"></div>
-    </SectionWrapper>
-  );
-}
-
-export function TrackProgressSection() {
-  return (
-    <SectionWrapper id="track">
-      <div className="text-content">
-        <div className="section-label">04. Track</div>
-        <h2 className="section-title">See how far you've come.</h2>
-        <p className="section-description">
-          Analytics that empower rather than punish. Track your completion rate, build learning streaks, and visualize your growing expertise over time.
-        </p>
-      </div>
-      {/* Visual content removed to feature the 3D aircraft exclusively */}
       <div className="visual-content"></div>
     </SectionWrapper>
   );
@@ -103,13 +69,12 @@ export function CommunitySection() {
   return (
     <SectionWrapper id="community">
       <div className="text-content">
-        <div className="section-label">05. Community</div>
+        <div className="section-label">Step 03</div>
         <h2 className="section-title">Learn from the paths of others.</h2>
         <p className="section-description">
           Discover roadmaps created by experts. Fork trending paths, see where others branched off, and contribute your own journey back to the community.
         </p>
       </div>
-      {/* Visual content removed to feature the 3D aircraft exclusively */}
       <div className="visual-content"></div>
     </SectionWrapper>
   );

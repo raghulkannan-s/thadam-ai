@@ -5,6 +5,7 @@ import { usePathname, useRouter } from 'next/navigation';
 import { Home, Compass, BookOpen, Users, Plus, X, Menu, Sparkles, PanelLeftClose, PanelLeftOpen } from 'lucide-react';
 import { cn } from '@/utils/cn';
 import { Button } from '@/shared/ui/Button';
+import { useAuth } from '@/features/auth/context/auth-context';
 
 const navItems = [
   { name: 'Home', href: '/home', icon: Home },
@@ -16,6 +17,7 @@ const navItems = [
 export function Sidebar({ isOpen = false, isDesktopOpen = true, setIsOpen, setIsDesktopOpen }: { isOpen?: boolean; isDesktopOpen?: boolean; setIsOpen?: (v: boolean) => void; setIsDesktopOpen?: (v: boolean) => void }) {
   const pathname = usePathname();
   const router = useRouter();
+  const { user } = useAuth();
 
   return (
     <aside className={cn(
@@ -27,21 +29,19 @@ export function Sidebar({ isOpen = false, isDesktopOpen = true, setIsOpen, setIs
       <div className={cn("mb-10 flex items-center px-2", isDesktopOpen ? "justify-between" : "justify-center")}>
         {isDesktopOpen ? (
           <>
-            <div className="flex items-center">
-              <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-[var(--accent-primary)] text-white font-bold shadow-lg shadow-[var(--accent-primary)]/30">
-                T
-              </div>
-              <span className="ml-3 text-lg font-bold tracking-tight text-[var(--text-primary)] transition-opacity">
+            <Link href="/?view=landing" className="flex items-center no-underline hover:opacity-80 transition-opacity">
+              <img src="/assets/logo-no-bg.png" alt="Thadam AI Logo" className="h-[52px] w-[52px] shrink-0 object-contain animate-heartbeat" />
+              <span className="ml-3 text-2xl font-black tracking-tight text-[var(--text-primary)] transition-opacity">
                 Thadam
               </span>
-            </div>
+            </Link>
           </>
         ) : (
           <div className="flex flex-col items-center">
             {/* Logo when collapsed */}
-            <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-[var(--accent-primary)] text-white font-bold shadow-lg shadow-[var(--accent-primary)]/30">
-              T
-            </div>
+            <Link href="/?view=landing" className="hover:opacity-80 transition-opacity">
+              <img src="/assets/logo-no-bg.png" alt="Thadam AI Logo" className="h-[52px] w-[52px] shrink-0 object-contain animate-heartbeat" />
+            </Link>
           </div>
         )}
         
@@ -79,7 +79,7 @@ export function Sidebar({ isOpen = false, isDesktopOpen = true, setIsOpen, setIs
                   isActive ? 'text-[var(--accent-primary)]' : 'text-[var(--text-tertiary)]'
                 )}
               />
-              <span className={cn("transition-opacity whitespace-nowrap", !isDesktopOpen && "lg:hidden")}>
+              <span className={cn("transition-opacity truncate", !isDesktopOpen && "lg:hidden")}>
                 {item.name}
               </span>
             </Link>
@@ -106,30 +106,35 @@ export function Sidebar({ isOpen = false, isDesktopOpen = true, setIsOpen, setIs
              Create Roadmap
           </span>
         </Button>
-      </nav>
-
-      <div className={cn("mt-auto pb-4 flex flex-col gap-4", isDesktopOpen ? "px-2" : "lg:hidden px-2")}>
-          <div className="rounded-xl bg-gradient-to-br from-[var(--accent-primary)]/10 to-purple-500/10 p-4 border border-[var(--accent-primary)]/20 relative overflow-hidden group hover:border-[var(--accent-primary)]/40 transition-colors shadow-sm">
-            <div className="absolute top-0 right-0 -mt-4 -mr-4 bg-gradient-to-br from-[var(--accent-primary)] to-purple-500 rounded-full w-16 h-16 opacity-10 group-hover:scale-150 transition-transform duration-500" />
-            <h4 className="text-sm font-bold tracking-tight text-[var(--text-primary)] mb-1 flex items-center gap-1.5">
-              <Sparkles className="w-4 h-4 text-[var(--accent-primary)]" /> Upgrade to Pro
-            </h4>
-            <p className="text-xs text-[var(--text-secondary)] leading-relaxed mb-3 relative z-10">
-              Get unlimited roadmaps and daily coins.
-            </p>
-            <Button 
-              variant="primary" 
-              size="sm" 
-              className="w-full h-8 text-xs font-bold relative z-10 shadow-sm" 
-              onClick={() => {
-                setIsOpen?.(false);
-                router.push('/pro');
-              }}
-            >
-              Upgrade Now
-            </Button>
-          </div>
+        <div className="mt-auto px-2 pb-4">
+          <div className="my-4 border-t border-[var(--border-subtle)]" />
+          
+          {user?.plan !== 'PREMIUM' && (
+            <div className={cn("transition-all duration-300", !isDesktopOpen && "lg:hidden")}>
+              <div className="rounded-xl bg-gradient-to-br from-[var(--accent-primary)]/10 to-purple-500/10 p-4 border border-[var(--accent-primary)]/20 relative overflow-hidden group hover:border-[var(--accent-primary)]/40 transition-colors shadow-sm">
+                <div className="absolute top-0 right-0 -mt-4 -mr-4 bg-gradient-to-br from-[var(--accent-primary)] to-purple-500 rounded-full w-16 h-16 opacity-10 group-hover:scale-150 transition-transform duration-500" />
+                <h4 className="text-sm font-bold tracking-tight text-[var(--text-primary)] mb-1 flex items-center gap-1.5">
+                  <Sparkles className="w-4 h-4 text-[var(--accent-primary)]" /> Upgrade to Pro
+                </h4>
+                <p className="text-xs text-[var(--text-secondary)] leading-relaxed mb-3 relative z-10">
+                  Get unlimited roadmaps and daily coins.
+                </p>
+                <Button 
+                  variant="primary" 
+                  size="sm" 
+                  className="w-full h-8 text-xs font-bold relative z-10 shadow-sm" 
+                  onClick={() => {
+                    setIsOpen?.(false);
+                    router.push('/pricing');
+                  }}
+                >
+                  Upgrade Now
+                </Button>
+              </div>
+            </div>
+          )}
         </div>
+      </nav>
 
         {/* Desktop Toggle Button at bottom */}
         <div className="mt-2 hidden lg:flex border-t border-[var(--border-subtle)] pt-4">

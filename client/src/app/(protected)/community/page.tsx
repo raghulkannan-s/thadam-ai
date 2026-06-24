@@ -19,18 +19,24 @@ import { useDebounce } from '@/hooks/use-debounce';
 const filters = ['Trending', 'Newest'] as const;
 type FilterType = (typeof filters)[number];
 
+const categories = ['ALL', 'TECHNOLOGY', 'ARTS', 'SCIENCE', 'HEALTH', 'BUSINESS', 'COOKING', 'LIFESTYLE', 'OTHER'] as const;
+type CategoryType = (typeof categories)[number];
+
 export default function CommunityPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const initialQuery = searchParams.get('q') || '';
   
   const [activeFilter, setActiveFilter] = useState<FilterType>('Trending');
+  const [activeCategory, setActiveCategory] = useState<CategoryType>('ALL');
   const [searchQuery, setSearchQuery] = useState(initialQuery);
   const debouncedSearch = useDebounce(searchQuery, 300);
   
-  const { data: trendingData, isLoading: isTrendingLoading, isError: isTrendingError, refetch: refetchTrending } = useTrendingRoadmaps();
-  const { data: newestData, isLoading: isNewestLoading, isError: isNewestError, refetch: refetchNewest } = useNewestRoadmaps();
-  const { data: searchData, isLoading: isSearchLoading, isError: isSearchError, refetch: refetchSearch } = useSearchRoadmaps(debouncedSearch);
+  const categoryParam = activeCategory === 'ALL' ? undefined : activeCategory;
+
+  const { data: trendingData, isLoading: isTrendingLoading, isError: isTrendingError, refetch: refetchTrending } = useTrendingRoadmaps(categoryParam);
+  const { data: newestData, isLoading: isNewestLoading, isError: isNewestError, refetch: refetchNewest } = useNewestRoadmaps(categoryParam);
+  const { data: searchData, isLoading: isSearchLoading, isError: isSearchError, refetch: refetchSearch } = useSearchRoadmaps(debouncedSearch, categoryParam);
   
   const isSearching = debouncedSearch.length > 0;
   
@@ -102,6 +108,18 @@ export default function CommunityPage() {
               {filter === 'Trending' && <Flame className="mr-2 h-4 w-4 text-[var(--warning)]" />}
               {filter === 'Newest' && <Clock className="mr-2 h-4 w-4 text-[var(--info)]" />}
               {filter}
+            </Button>
+          ))}
+          <div className="w-px h-6 bg-[var(--border-default)] mx-2 self-center"></div>
+          {categories.map(cat => (
+            <Button 
+              key={cat} 
+              variant={activeCategory === cat ? 'secondary' : 'ghost'}
+              size="sm"
+              onClick={() => setActiveCategory(cat)}
+              className={`rounded-full px-4 font-semibold text-xs tracking-wide ${activeCategory === cat ? 'bg-indigo-500/20 text-indigo-400 hover:bg-indigo-500/30' : ''}`}
+            >
+              {cat.charAt(0) + cat.slice(1).toLowerCase()}
             </Button>
           ))}
         </div>

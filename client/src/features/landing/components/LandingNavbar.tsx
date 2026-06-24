@@ -41,31 +41,23 @@ export default function LandingNavbar() {
             style={{
               display: "flex",
               alignItems: "center",
-              gap: 10,
+              gap: 12,
               textDecoration: "none",
             }}
           >
-            <div
+            <img
+              src="/assets/logo-no-bg.png"
+              alt="Thadam AI Logo"
               style={{
-                width: 32,
-                height: 32,
-                borderRadius: 8,
-                background: "var(--accent-primary)",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                color: "#fff",
-                fontWeight: 800,
-                fontSize: "0.875rem",
-                boxShadow: "0 2px 8px rgba(37, 99, 235, 0.3)",
+                width: 57,
+                height: 57,
+                objectFit: "contain",
               }}
-            >
-              T
-            </div>
+            />
             <span
               style={{
-                fontSize: "1.05rem",
-                fontWeight: 700,
+                fontSize: "1.3rem",
+                fontWeight: 800,
                 color: "var(--text-primary)",
                 letterSpacing: "-0.02em",
               }}

@@ -11,6 +11,7 @@ import { toast } from 'sonner';
 import { useCoinBalance } from '@/features/ledger/api/queries';
 import Link from 'next/link';
 import { buildRoadmapPrompt } from '@/features/roadmap/utils/prompts';
+import { CoinCatcherGame } from '@/features/roadmap/components/CoinCatcherGame';
 
 const difficulties = [
   { value: 'BEGINNER', label: 'Beginner', description: 'New to the topic' },
@@ -20,13 +21,26 @@ const difficulties = [
 
 
 
+const categories = [
+  { value: 'TECHNOLOGY', label: 'Technology' },
+  { value: 'ARTS', label: 'Arts' },
+  { value: 'SCIENCE', label: 'Science' },
+  { value: 'HEALTH', label: 'Health' },
+  { value: 'BUSINESS', label: 'Business' },
+  { value: 'COOKING', label: 'Cooking' },
+  { value: 'LIFESTYLE', label: 'Lifestyle' },
+  { value: 'OTHER', label: 'Other' },
+];
+
 export default function NewRoadmapPage() {
   const router = useRouter();
 
   const [topic, setTopic] = useState('');
   const [difficulty, setDifficulty] = useState('INTERMEDIATE');
-  const [durationWeeks, setDurationWeeks] = useState(4);
-  const [estimatedHoursPerDay, setEstimatedHoursPerDay] = useState(1.0);
+  const [category, setCategory] = useState('TECHNOLOGY');
+  const [durationValue, setDurationValue] = useState("4");
+  const [durationType, setDurationType] = useState("WEEKS");
+  const [estimatedHoursPerDay, setEstimatedHoursPerDay] = useState("1");
   const [additionalContext, setAdditionalContext] = useState('');
   const [visibility, setVisibility] = useState('PUBLIC');
   
@@ -68,13 +82,25 @@ export default function NewRoadmapPage() {
     const prompt = buildRoadmapPrompt({
       topic,
       difficulty,
-      durationWeeks,
-      estimatedHoursPerDay,
+      durationValue: parseInt(durationValue) || 4,
+      durationType,
+      estimatedHoursPerDay: parseFloat(estimatedHoursPerDay) || 1.0,
       additionalContext
     });
     
+    toast.success("AI is thinking! Play the coin catcher game while you wait! 🎮");
+    
     generate(
-      { prompt, difficulty, durationWeeks, estimatedHoursPerDay, visibility, isRegeneration: false },
+      { 
+        prompt, 
+        difficulty, 
+        durationValue: parseInt(durationValue) || 4,
+        durationType, 
+        estimatedHoursPerDay: parseFloat(estimatedHoursPerDay) || 1.0, 
+        visibility, 
+        category,
+        isRegeneration: false 
+      },
       {
         onSuccess: (roadmap) => {
           const id = roadmap.id;
@@ -93,28 +119,27 @@ export default function NewRoadmapPage() {
   };
 
   return (
-    <div className="relative animate-fade-in-up">
-      <div className="w-full flex justify-start mb-8 absolute -top-4 -left-4 lg:-left-20">
+    <div className="relative animate-fade-in-up min-h-screen">
+      <div className="absolute top-0 left-4 lg:left-8 z-10">
         <Link 
           href="/community" 
-          className="inline-flex items-center text-sm font-medium text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors no-underline"
+          className="inline-flex items-center text-sm font-medium text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors no-underline bg-[var(--bg-surface)] px-3 py-1.5 rounded-full border border-[var(--border-subtle)] shadow-sm"
         >
           <ArrowLeft className="mr-1.5 h-4 w-4" />
           Back
         </Link>
       </div>
 
-      <div className="mx-auto max-w-2xl pb-20 pt-8 relative">
-
-      <div className="mb-10 text-center">
-        <Badge variant="default" className="mb-4 inline-flex shadow-sm">
-          <Sparkles className="mr-1.5 h-3.5 w-3.5" /> AI-Powered
-        </Badge>
-        <h1 className="text-4xl font-extrabold tracking-tight mb-3">What do you want to learn?</h1>
-        <p className="text-[var(--text-secondary)] text-lg max-w-lg mx-auto leading-relaxed">
-          Describe your goal. We'll generate a personalized, structured curriculum to get you there.
-        </p>
-      </div>
+      <div className="mx-auto max-w-2xl pb-20 pt-16 relative">
+        <div className="mb-10 text-center">
+          <Badge variant="default" className="mb-4 inline-flex shadow-sm">
+            <Sparkles className="mr-1.5 h-3.5 w-3.5" /> AI-Powered
+          </Badge>
+          <h1 className="text-4xl font-extrabold tracking-tight mb-3">What do you want to learn?</h1>
+          <p className="text-[var(--text-secondary)] text-lg max-w-lg mx-auto leading-relaxed">
+            Describe your goal. We'll generate a personalized, structured curriculum to get you there.
+          </p>
+        </div>
 
       <form onSubmit={handleSubmit} className="space-y-10 relative bg-[var(--bg-base)] premium-card p-8">
         
@@ -136,28 +161,57 @@ export default function NewRoadmapPage() {
           />
         </div>
 
-        {/* Difficulty */}
-        <div>
-          <label className="block text-sm font-semibold text-[var(--text-primary)] mb-3 flex items-center">
-            <BarChart3 className="mr-2 h-4 w-4 text-[var(--text-tertiary)]" /> Difficulty Level
-          </label>
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-            {difficulties.map((d) => (
-              <button
-                key={d.value}
-                type="button"
-                onClick={() => setDifficulty(d.value)}
-                disabled={isPending}
-                className={`rounded-[var(--radius-md)] border p-4 text-left transition-all cursor-pointer ${
-                  difficulty === d.value 
-                    ? 'border-[var(--accent-primary)] bg-[var(--accent-primary)]/5 ring-1 ring-[var(--accent-primary)]/20 shadow-sm' 
-                    : 'border-[var(--border-default)] bg-[var(--bg-surface)] hover:border-[var(--text-tertiary)]'
-                }`}
-              >
-                <p className="text-sm font-bold text-[var(--text-primary)]">{d.label}</p>
-                <p className="text-xs text-[var(--text-secondary)] mt-1">{d.description}</p>
-              </button>
-            ))}
+        {/* Difficulty & Category */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-8 pt-4 border-t border-[var(--border-subtle)]">
+          <div>
+            <label className="block text-sm font-semibold text-[var(--text-primary)] mb-4 flex items-center">
+              <Target className="mr-2 h-4 w-4 text-[var(--text-tertiary)]" /> Starting Level
+            </label>
+            <div className="grid grid-cols-1 gap-3">
+              {difficulties.map((diff) => (
+                <button
+                  key={diff.value}
+                  type="button"
+                  disabled={isPending}
+                  onClick={() => setDifficulty(diff.value)}
+                  className={`flex flex-col items-start p-4 rounded-[var(--radius-md)] border text-left transition-all ${
+                    difficulty === diff.value
+                      ? 'border-[var(--accent-primary)] bg-[var(--accent-primary)]/10 ring-1 ring-[var(--accent-primary)]'
+                      : 'border-[var(--border-default)] bg-[var(--bg-base)] hover:border-[var(--border-hover)]'
+                  }`}
+                >
+                  <span className={`font-bold text-sm ${difficulty === diff.value ? 'text-[var(--accent-primary)]' : 'text-[var(--text-primary)]'}`}>
+                    {diff.label}
+                  </span>
+                  <span className="text-xs text-[var(--text-tertiary)] mt-1">{diff.description}</span>
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <div>
+            <label className="block text-sm font-semibold text-[var(--text-primary)] mb-4 flex items-center">
+              <BarChart3 className="mr-2 h-4 w-4 text-[var(--text-tertiary)]" /> Category
+            </label>
+            <div className="grid grid-cols-2 gap-3">
+              {categories.map((cat) => (
+                <button
+                  key={cat.value}
+                  type="button"
+                  disabled={isPending}
+                  onClick={() => setCategory(cat.value)}
+                  className={`flex items-center justify-center p-3 rounded-[var(--radius-md)] border text-center transition-all ${
+                    category === cat.value
+                      ? 'border-[var(--accent-primary)] bg-[var(--accent-primary)]/10 ring-1 ring-[var(--accent-primary)]'
+                      : 'border-[var(--border-default)] bg-[var(--bg-base)] hover:border-[var(--border-hover)]'
+                  }`}
+                >
+                  <span className={`font-bold text-sm ${category === cat.value ? 'text-[var(--accent-primary)]' : 'text-[var(--text-primary)]'}`}>
+                    {cat.label}
+                  </span>
+                </button>
+              ))}
+            </div>
           </div>
         </div>
 
@@ -165,18 +219,32 @@ export default function NewRoadmapPage() {
           {/* Duration */}
           <div>
             <label className="block text-sm font-semibold text-[var(--text-primary)] mb-3 flex items-center">
-              <Clock className="mr-2 h-4 w-4 text-[var(--text-tertiary)]" /> Timeline (Weeks)
+              <Clock className="mr-2 h-4 w-4 text-[var(--text-tertiary)]" /> Timeline
             </label>
-            <input
-              type="number"
-              min="1"
-              max="52"
-              value={durationWeeks}
-              onChange={(e) => setDurationWeeks(Number(e.target.value))}
-              disabled={isPending}
-              placeholder="e.g. 4"
-              className="w-full h-12 px-4 rounded-[var(--radius-md)] border border-[var(--border-default)] bg-[var(--bg-surface)] text-[var(--text-primary)] text-sm focus:outline-none focus:ring-2 focus:ring-[var(--accent-primary)] transition-all shadow-sm"
-            />
+            <div className="flex gap-2">
+              <input
+                type="number"
+                min="1"
+                max="365"
+                value={durationValue}
+                onChange={(e) => setDurationValue(e.target.value)}
+                disabled={isPending}
+                placeholder="e.g. 4"
+                className="w-1/2 h-12 px-4 rounded-[var(--radius-md)] border border-[var(--border-default)] bg-[var(--bg-surface)] text-[var(--text-primary)] text-sm focus:outline-none focus:ring-2 focus:ring-[var(--accent-primary)] transition-all shadow-sm"
+              />
+              <select
+                value={durationType}
+                onChange={(e) => setDurationType(e.target.value)}
+                disabled={isPending}
+                className="w-1/2 h-12 px-4 rounded-[var(--radius-md)] border border-[var(--border-default)] bg-[var(--bg-surface)] text-[var(--text-primary)] text-sm focus:outline-none focus:ring-2 focus:ring-[var(--accent-primary)] transition-all shadow-sm appearance-none cursor-pointer"
+              >
+                <option value="HOURS">Hours</option>
+                <option value="DAYS">Days</option>
+                <option value="WEEKS">Weeks</option>
+                <option value="MONTHS">Months</option>
+                <option value="YEARS">Years</option>
+              </select>
+            </div>
           </div>
 
           {/* Time Commitment */}
@@ -190,10 +258,7 @@ export default function NewRoadmapPage() {
               max="24"
               step="0.5"
               value={estimatedHoursPerDay}
-              onChange={(e) => {
-                const val = Number(e.target.value);
-                setEstimatedHoursPerDay(val > 24 ? 24 : val);
-              }}
+              onChange={(e) => setEstimatedHoursPerDay(e.target.value)}
               disabled={isPending}
               placeholder="e.g. 1.5"
               className="w-full h-12 px-4 rounded-[var(--radius-md)] border border-[var(--border-default)] bg-[var(--bg-surface)] text-[var(--text-primary)] text-sm focus:outline-none focus:ring-2 focus:ring-[var(--accent-primary)] transition-all shadow-sm"
@@ -240,40 +305,31 @@ export default function NewRoadmapPage() {
            </div>
         </div>
 
-        {/* Submit */}
+        {/* Submit or Game */}
         <div className="pt-6">
-          <Button 
-            type="submit" 
-            variant="primary" 
-            size="lg" 
-            fullWidth 
-            disabled={isPending || !topic.trim()}
-            className="h-14 text-base font-semibold transition-all overflow-hidden"
-          >
-            {isPending ? (
-              <div className="flex flex-col items-center justify-center animate-fade-in">
-                 <div className="flex items-center">
-                   <div className="mr-3">
-                     <Spinner size={20} />
-                   </div>
-                   <span>{progressMessages[generationStage]}</span>
-                 </div>
+          {!isPending ? (
+            <Button 
+              type="submit" 
+              variant="primary" 
+              size="lg" 
+              fullWidth 
+              disabled={!topic.trim()}
+              className="h-14 text-base font-semibold transition-all overflow-hidden shadow-md hover:shadow-lg"
+            >
+              Generate Roadmap <img src="/assets/coin.png" alt="Coins" className="w-8 h-8 object-contain ml-3 -mr-1 drop-shadow-md scale-110" />10
+            </Button>
+          ) : (
+            <div className="animate-fade-in">
+              <CoinCatcherGame />
+              <div className="mt-6 w-full h-1.5 bg-[var(--bg-elevated)] rounded-full overflow-hidden shadow-inner">
+                <div 
+                  className="h-full bg-[var(--accent-primary)] rounded-full transition-all duration-1000 ease-out"
+                  style={{ width: `${Math.min(100, (generationStage + 1) * 25)}%` }}
+                />
               </div>
-            ) : (
-              <>
-                <Sparkles className="mr-2 h-5 w-5" /> Generate Roadmap (10 Coins)
-              </>
-            )}
-          </Button>
-
-          {isPending && (
-            <div className="mt-6 flex flex-col items-center space-y-3 animate-fade-in">
-               <div className="w-full h-1 bg-[var(--bg-elevated)] rounded-full overflow-hidden">
-                  <div 
-                     className="h-full bg-[var(--accent-primary)] rounded-full transition-all duration-1000 ease-out"
-                     style={{ width: `${Math.min(100, (generationStage + 1) * 25)}%` }}
-                  />
-               </div>
+              <p className="text-center text-xs text-[var(--text-tertiary)] mt-3 font-semibold tracking-wide uppercase">
+                {progressMessages[generationStage]}
+              </p>
             </div>
           )}
         </div>

@@ -79,9 +79,10 @@ public class RoadmapController {
     @GetMapping("/search")
     public ResponseEntity<ApiResponse<Page<CommunityRoadmapResponse>>> searchRoadmaps(
             @RequestParam String q,
+            @RequestParam(required = false) String category,
             @PageableDefault(sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable,
             @AuthenticationPrincipal User user) {
-        Page<CommunityRoadmapResponse> roadmaps = roadmapService.searchRoadmaps(q, pageable, user);
+        Page<CommunityRoadmapResponse> roadmaps = roadmapService.searchRoadmaps(q, category, pageable, user);
         return ResponseEntity.ok(ApiResponse.success(roadmaps));
     }
 
@@ -209,17 +210,19 @@ public class RoadmapController {
 
     @GetMapping("/feed/trending")
     public ResponseEntity<ApiResponse<Page<CommunityRoadmapResponse>>> getTrendingFeed(
+            @RequestParam(required = false) String category,
             @PageableDefault(sort = "popularityScore", direction = Sort.Direction.DESC) Pageable pageable,
             @AuthenticationPrincipal User user) {
-        Page<CommunityRoadmapResponse> roadmaps = roadmapService.getTrendingRoadmaps(pageable, user);
+        Page<CommunityRoadmapResponse> roadmaps = roadmapService.getTrendingRoadmaps(category, pageable, user);
         return ResponseEntity.ok(ApiResponse.success(roadmaps));
     }
 
     @GetMapping("/feed/newest")
     public ResponseEntity<ApiResponse<Page<CommunityRoadmapResponse>>> getNewestFeed(
+            @RequestParam(required = false) String category,
             @PageableDefault(sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable,
             @AuthenticationPrincipal User user) {
-        Page<CommunityRoadmapResponse> roadmaps = roadmapService.getNewestRoadmaps(pageable, user);
+        Page<CommunityRoadmapResponse> roadmaps = roadmapService.getNewestRoadmaps(category, pageable, user);
         return ResponseEntity.ok(ApiResponse.success(roadmaps));
     }
 }

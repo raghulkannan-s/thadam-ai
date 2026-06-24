@@ -39,6 +39,13 @@ public class ModerationController {
 
 
 
+    @DeleteMapping("/{id}")
+    public ResponseEntity<ApiResponse<Void>> deleteRoadmap(
+            @PathVariable String id) {
+        roadmapService.deleteRoadmapAsAdmin(id);
+        return ResponseEntity.noContent().build();
+    }
+
     @PatchMapping("/{id}/visibility")
     public ResponseEntity<ApiResponse<RoadmapResponse>> forceUpdateVisibility(
             @PathVariable String id,

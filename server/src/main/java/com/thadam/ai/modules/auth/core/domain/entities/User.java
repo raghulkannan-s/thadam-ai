@@ -78,6 +78,9 @@ public class User extends BaseEntity implements UserDetails {
 
     private String providerId;
 
+    @Column(name = "stripe_subscription_id")
+    private String stripeSubscriptionId;
+
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
         return List.of(new SimpleGrantedAuthority("ROLE_" + role.name()));

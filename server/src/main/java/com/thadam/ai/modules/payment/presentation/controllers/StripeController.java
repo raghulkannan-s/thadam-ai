@@ -4,6 +4,7 @@ import com.stripe.exception.SignatureVerificationException;
 import com.stripe.model.Event;
 import com.stripe.model.EventDataObjectDeserializer;
 import com.stripe.model.StripeObject;
+import com.stripe.model.Subscription;
 import com.stripe.model.checkout.Session;
 import com.stripe.net.Webhook;
 import com.thadam.ai.common.enums.SubscriptionPlan;
@@ -13,6 +14,8 @@ import com.thadam.ai.modules.ledger.core.application.dtos.CoinTransactionRequest
 import com.thadam.ai.modules.ledger.core.domain.enums.TransactionType;
 import com.thadam.ai.modules.ledger.core.application.services.LedgerService;
 import com.thadam.ai.modules.payment.core.application.services.StripeService;
+import com.thadam.ai.modules.payment.core.domain.entities.ProcessedWebhook;
+import com.thadam.ai.modules.payment.infrastructure.repositories.ProcessedWebhookRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -33,6 +36,7 @@ public class StripeController {
     private final StripeService stripeService;
     private final UserRepository userRepository;
     private final LedgerService ledgerService;
+    private final ProcessedWebhookRepository processedWebhookRepository;
 
     @Value("${stripe.webhook.secret:}")
     private String endpointSecret;
@@ -57,6 +61,24 @@ public class StripeController {
         }
     }
 
+    @PostMapping("/cancel-subscription")
+    public ResponseEntity<Map<String, String>> cancelSubscription(
+            org.springframework.security.core.Authentication authentication) {
+        try {
+            if (authentication == null || !(authentication.getPrincipal() instanceof User user)) {
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+            }
+            
+            stripeService.cancelSubscription(user);
+            
+            return ResponseEntity.ok(Map.of("message", "Subscription cancelled successfully"));
+        } catch (Exception e) {
+            log.error("Failed to cancel subscription", e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(Map.of("error", e.getMessage()));
+        }
+    }
+
     @PostMapping("/webhook")
     public ResponseEntity<String> handleWebhook(
             @RequestBody String payload,
@@ -70,13 +92,30 @@ public class StripeController {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("");
         }
 
+        if (processedWebhookRepository.existsById(event.getId())) {
+            log.info("Webhook event {} already processed. Ignoring.", event.getId());
+            return ResponseEntity.ok("");
+        }
+
         if ("checkout.session.completed".equals(event.getType())) {
             EventDataObjectDeserializer dataObjectDeserializer = event.getDataObjectDeserializer();
-            StripeObject stripeObject = dataObjectDeserializer.getObject().orElse(null);
+            StripeObject stripeObject = null;
+            if (dataObjectDeserializer.getObject().isPresent()) {
+                stripeObject = dataObjectDeserializer.getObject().get();
+            } else {
+                try {
+                    stripeObject = dataObjectDeserializer.deserializeUnsafe();
+                } catch (Exception e) {
+                    log.error("Failed to deserialize unsafe session", e);
+                }
+            }
             
             if (stripeObject instanceof Session session) {
-                String userIdStr = session.getMetadata().get("userId");
-                String productType = session.getMetadata().get("productType");
+                log.info("Parsed Session! Metadata: {}", session.getMetadata());
+                String userIdStr = session.getMetadata() != null ? session.getMetadata().get("userId") : null;
+                String productType = session.getMetadata() != null ? session.getMetadata().get("productType") : null;
+                
+                log.info("Extracted userId: {}, productType: {}", userIdStr, productType);
                 
                 if (userIdStr != null && productType != null) {
                     Long userId = Long.parseLong(userIdStr);
@@ -87,6 +126,9 @@ public class StripeController {
                         
                         if ("premium".equals(productType)) {
                             user.setPlan(SubscriptionPlan.PREMIUM);
+                            if (session.getSubscription() != null) {
+                                user.setStripeSubscriptionId(session.getSubscription());
+                            }
                             userRepository.save(user);
                             log.info("User {} upgraded to PREMIUM", userId);
                         } else if ("coins_100".equals(productType)) {
@@ -103,7 +145,30 @@ public class StripeController {
                     }
                 }
             }
+        } else if ("customer.subscription.deleted".equals(event.getType())) {
+            EventDataObjectDeserializer dataObjectDeserializer = event.getDataObjectDeserializer();
+            StripeObject stripeObject = null;
+            if (dataObjectDeserializer.getObject().isPresent()) {
+                stripeObject = dataObjectDeserializer.getObject().get();
+            } else {
+                try {
+                    stripeObject = dataObjectDeserializer.deserializeUnsafe();
+                } catch (Exception e) {
+                    log.error("Failed to deserialize unsafe subscription", e);
+                }
+            }
+            
+            if (stripeObject instanceof Subscription subscription) {
+                userRepository.findByStripeSubscriptionId(subscription.getId()).ifPresent(user -> {
+                    user.setPlan(SubscriptionPlan.FREE);
+                    user.setStripeSubscriptionId(null);
+                    userRepository.save(user);
+                    log.info("User {} subscription deleted, downgraded to FREE", user.getId());
+                });
+            }
         }
+        
+        processedWebhookRepository.save(new ProcessedWebhook(event.getId(), java.time.LocalDateTime.now()));
         
         return ResponseEntity.ok("");
     }

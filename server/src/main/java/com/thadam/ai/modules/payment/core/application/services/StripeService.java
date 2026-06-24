@@ -1,6 +1,7 @@
 package com.thadam.ai.modules.payment.core.application.services;
 
 import com.stripe.exception.StripeException;
+import com.stripe.model.Subscription;
 import com.stripe.model.checkout.Session;
 import com.stripe.param.checkout.SessionCreateParams;
 import com.thadam.ai.modules.auth.core.domain.entities.User;
@@ -18,8 +19,8 @@ public class StripeService {
         
         SessionCreateParams.Builder paramsBuilder = SessionCreateParams.builder()
                 .setMode(productType.equals("premium") ? SessionCreateParams.Mode.SUBSCRIPTION : SessionCreateParams.Mode.PAYMENT)
-                .setSuccessUrl(frontendUrl + "/pro?success=true&session_id={CHECKOUT_SESSION_ID}")
-                .setCancelUrl(frontendUrl + "/pro?canceled=true")
+                .setSuccessUrl(frontendUrl + "/pricing?success=true&session_id={CHECKOUT_SESSION_ID}")
+                .setCancelUrl(frontendUrl + "/pricing?canceled=true")
                 .putMetadata("userId", user.getId().toString())
                 .putMetadata("productType", productType)
                 .setCustomerEmail(user.getEmail())
@@ -87,5 +88,13 @@ public class StripeService {
 
         Session session = Session.create(paramsBuilder.build());
         return session.getUrl();
+    }
+
+    public void cancelSubscription(User user) throws StripeException {
+        if (user.getStripeSubscriptionId() == null) {
+            throw new IllegalArgumentException("User does not have an active subscription");
+        }
+        Subscription resource = Subscription.retrieve(user.getStripeSubscriptionId());
+        resource.cancel();
     }
 }

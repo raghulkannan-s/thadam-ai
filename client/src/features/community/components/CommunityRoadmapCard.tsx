@@ -4,7 +4,7 @@ import { Card, CardContent, CardFooter } from '@/shared/ui/Card';
 import { Badge } from '@/shared/ui/Badge';
 import { Avatar } from '@/shared/ui/Avatar';
 import { Button } from '@/shared/ui/Button';
-import { GitFork, ArrowUpCircle, Clock, ArrowDownCircle } from 'lucide-react';
+import { GitFork, ArrowUpCircle, Clock, ArrowDownCircle, MessageSquare } from 'lucide-react';
 import { CommunityRoadmapResponse } from '@/lib/types';
 import { useVoteRoadmap, useForkRoadmap } from '@/features/roadmap/api/mutations';
 
@@ -36,7 +36,12 @@ export function CommunityRoadmapCard({ roadmap }: { roadmap: CommunityRoadmapRes
           <div className="flex justify-between items-start mb-4">
             <div className="flex gap-1 flex-wrap">
               <Badge variant="secondary" className="capitalize">{roadmap.difficulty?.toLowerCase() || 'Intermediate'}</Badge>
-              <Badge variant="outline">{roadmap.durationWeeks ? `${roadmap.durationWeeks}W` : '4W'}</Badge>
+              <Badge variant="outline">{roadmap.durationValue && roadmap.durationType ? `${roadmap.durationValue}${roadmap.durationType.charAt(0)}` : '4W'}</Badge>
+              {roadmap.category && roadmap.category !== 'OTHER' && (
+                <Badge variant="outline" className="bg-indigo-500/10 text-indigo-400 border-indigo-500/30">
+                  {roadmap.category.charAt(0) + roadmap.category.slice(1).toLowerCase()}
+                </Badge>
+              )}
             </div>
             
             {/* Voting Actions */}
@@ -64,7 +69,7 @@ export function CommunityRoadmapCard({ roadmap }: { roadmap: CommunityRoadmapRes
           </div>
           
           <h3 className="text-xl font-bold tracking-tight leading-snug mb-3 group-hover:text-[var(--accent-primary)] transition-colors">
-            {roadmap.title}
+            {roadmap.shortTitle || roadmap.title}
           </h3>
           
           <div className="mt-auto pt-4 flex flex-col space-y-2.5 text-xs text-[var(--text-secondary)] font-medium">
@@ -72,19 +77,24 @@ export function CommunityRoadmapCard({ roadmap }: { roadmap: CommunityRoadmapRes
               <Clock className="mr-2 h-4 w-4 text-[var(--text-tertiary)]" /> {roadmap.milestoneCount} milestones
             </div>
             <div className="flex items-center justify-between w-full">
-              <div className="flex items-center">
-                <GitFork className="mr-2 h-4 w-4 text-[var(--text-tertiary)]" /> {roadmap.forkCount} forks
+              <div className="flex items-center gap-4">
+                <div className="flex items-center">
+                  <GitFork className="mr-2 h-4 w-4 text-[var(--text-tertiary)]" /> {roadmap.forkCount} forks
+                </div>
+                <div className="flex items-center text-[var(--text-tertiary)]">
+                  <MessageSquare className="mr-1.5 h-4 w-4" /> {roadmap.commentCount || 0}
+                </div>
               </div>
               
               {/* Fork Action Button */}
               <Button 
                 variant="outline" 
                 size="sm" 
-                className="h-7 text-xs px-2 z-10 relative" 
-                onClick={handleFork}
-                disabled={isForking}
+                className={`h-7 text-xs px-2 z-10 relative ${roadmap.hasForked ? "text-[var(--text-tertiary)] border-[var(--border-subtle)]" : ""}`} 
+                onClick={(e) => !roadmap.hasForked && handleFork(e)}
+                disabled={isForking || roadmap.hasForked}
               >
-                <GitFork className="mr-1 h-3 w-3" /> Fork
+                <GitFork className="mr-1 h-3 w-3" /> {roadmap.hasForked ? "Forked" : "Fork"}
               </Button>
             </div>
           </div>
@@ -93,7 +103,7 @@ export function CommunityRoadmapCard({ roadmap }: { roadmap: CommunityRoadmapRes
       
       <CardFooter className="p-5 border-t border-[var(--border-subtle)] bg-[var(--bg-base)] flex justify-between items-center z-10 relative">
         <Link href={`/creators/${roadmap.userId}`} className="flex items-center space-x-2.5 hover:opacity-80 transition-opacity">
-          <Avatar fallback={roadmap.userName} size="sm" className="h-6 w-6" />
+          <Avatar src={roadmap.userAvatarUrl} fallback={roadmap.userName} size="sm" className="h-6 w-6" />
           <span className="text-xs font-semibold text-[var(--text-secondary)] group-hover:text-[var(--text-primary)] transition-colors">
             {roadmap.userName}
           </span>

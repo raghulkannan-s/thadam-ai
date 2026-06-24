@@ -4,6 +4,7 @@ import com.thadam.ai.modules.auth.core.domain.entities.User;
 import com.thadam.ai.common.entity.BaseEntity;
 import com.thadam.ai.modules.roadmap.core.domain.enums.RoadmapStatus;
 import com.thadam.ai.modules.roadmap.core.domain.enums.RoadmapVisibility;
+import com.thadam.ai.modules.roadmap.core.domain.enums.RoadmapCategory;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -36,6 +37,9 @@ public class Roadmap extends BaseEntity {
     @Column(nullable = false)
     private String title;
 
+    @Column(name = "short_title", length = 100)
+    private String shortTitle;
+
     @PrePersist
     public void prePersist() {
         if (this.publicId == null) {
@@ -64,6 +68,11 @@ public class Roadmap extends BaseEntity {
     @Builder.Default
     private RoadmapVisibility visibility = RoadmapVisibility.PUBLIC;
 
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    @Builder.Default
+    private RoadmapCategory category = RoadmapCategory.OTHER;
+
     @Column(nullable = false)
     @Builder.Default
     private String difficulty = "INTERMEDIATE";
@@ -71,6 +80,14 @@ public class Roadmap extends BaseEntity {
     @Column(name = "duration_weeks", nullable = false)
     @Builder.Default
     private Integer durationWeeks = 4;
+
+    @Column(name = "duration_type")
+    @Builder.Default
+    private String durationType = "WEEKS";
+
+    @Column(name = "duration_value")
+    @Builder.Default
+    private Integer durationValue = 4;
 
     @Column(name = "estimated_hours_per_day", nullable = false)
     @Builder.Default
@@ -98,6 +115,10 @@ public class Roadmap extends BaseEntity {
     @Column(name = "completion_count", nullable = false)
     @Builder.Default
     private Long completionCount = 0L;
+
+    @Column(name = "comment_count", nullable = false)
+    @Builder.Default
+    private Integer commentCount = 0;
 
     @jakarta.persistence.OneToMany(mappedBy = "roadmap", cascade = jakarta.persistence.CascadeType.ALL, orphanRemoval = true)
     @Builder.Default
