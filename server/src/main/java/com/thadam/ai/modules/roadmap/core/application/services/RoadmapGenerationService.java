@@ -110,10 +110,16 @@ public class RoadmapGenerationService {
         }
     }
 
+    private String cachedPromptTemplate;
+
     private String loadPromptTemplate() {
+        if (cachedPromptTemplate != null) {
+            return cachedPromptTemplate;
+        }
         try {
             var resource = new ClassPathResource("prompts/roadmap-generation.txt");
-            return new String(resource.getInputStream().readAllBytes(), StandardCharsets.UTF_8);
+            cachedPromptTemplate = new String(resource.getInputStream().readAllBytes(), StandardCharsets.UTF_8);
+            return cachedPromptTemplate;
         } catch (IOException e) {
             throw new RuntimeException("Failed to load prompt template", e);
         }
