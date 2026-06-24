@@ -75,7 +75,7 @@ export function useGenerateRoadmap() {
 
 
   return useMutation({
-    mutationFn: async (request: { prompt: string; difficulty: string; durationWeeks: number; estimatedHoursPerDay: number; visibility: string; isRegeneration?: boolean }) => {
+    mutationFn: async (request: { prompt: string; difficulty: string; durationWeeks?: number; durationValue?: number; durationType?: string; estimatedHoursPerDay: number; visibility: string; category?: string; isRegeneration?: boolean }) => {
       const res = await apiFetch<RoadmapResponse>("/api/roadmaps/generate", {
         method: "POST",
         body: JSON.stringify(request),

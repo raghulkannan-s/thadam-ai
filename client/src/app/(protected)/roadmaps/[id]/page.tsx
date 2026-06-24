@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, use } from 'react';
 import { ArrowUpCircle, GitFork, Clock, Share2, Play, CheckCircle2, ChevronDown, ChevronUp, Target, Users, LayoutList, Circle, MessageSquare, Sparkles } from 'lucide-react';
 import { Button } from '@/shared/ui/Button';
 import { Badge } from '@/shared/ui/Badge';
@@ -132,6 +132,8 @@ export default function RoadmapContentPage({ params }: { params: Promise<{ id: s
       prompt: combinedPrompt, // or any context we want, since it's a regeneration of the topic
       difficulty: roadmap.difficulty,
       durationWeeks: roadmap.durationWeeks,
+      durationValue: roadmap.durationValue || roadmap.durationWeeks,
+      durationType: roadmap.durationType || "WEEKS",
       estimatedHoursPerDay: roadmap.estimatedHoursPerDay,
       visibility: visibility,
       isRegeneration: true

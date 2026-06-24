@@ -22,7 +22,7 @@ export function CommunityRoadmapCard({ roadmap }: { roadmap: CommunityRoadmapRes
   const handleFork = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    forkRoadmap(roadmap.id, {
+    forkRoadmap({ roadmapId: roadmap.id, visibility: 'PUBLIC' }, {
       onSuccess: (newRoadmap) => {
         router.push(`/roadmaps/${newRoadmap.id}`);
       }
