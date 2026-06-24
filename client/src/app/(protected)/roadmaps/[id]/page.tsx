@@ -1,7 +1,7 @@
 'use client';
 
-import { useState, useEffect, use } from 'react';
-import { ArrowUpCircle, GitFork, Clock, Share2, Play, CheckCircle2, ChevronDown, ChevronUp, Target, Users, LayoutList, Circle, MessageSquare } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { ArrowUpCircle, GitFork, Clock, Share2, Play, CheckCircle2, ChevronDown, ChevronUp, Target, Users, LayoutList, Circle, MessageSquare, Sparkles } from 'lucide-react';
 import { Button } from '@/shared/ui/Button';
 import { Badge } from '@/shared/ui/Badge';
 import { Card } from '@/shared/ui/Card';
