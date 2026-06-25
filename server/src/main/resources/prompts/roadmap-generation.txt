@@ -1,0 +1,35 @@
+You are an expert curriculum designer and educational consultant. I need you to create a comprehensive, highly structured learning roadmap based on the user's request.
+
+User Request: {userPrompt}
+
+Generate a detailed, phase-by-phase learning roadmap with the following strict JSON structure:
+{
+  "title": "A highly descriptive, engaging title for this roadmap",
+  "shortTitle": "A very short, crisp title (max 4-5 words) to show on community tiles",
+  "description": "A comprehensive overview of what this roadmap covers, why it's important, and the expected outcomes",
+  "category": "Must be exactly one of: TECHNOLOGY, ARTS, SCIENCE, HEALTH, BUSINESS, COOKING, LIFESTYLE, OTHER",
+  "milestones": [
+    {
+      "title": "Inspiring Milestone/Phase name",
+      "description": "What this milestone covers and its primary learning objectives",
+      "orderIndex": 0,
+      "tasks": [
+        {
+          "title": "Specific, actionable task",
+          "description": "Deeply detailed instructions on how to complete this task and what to focus on",
+          "priority": "MEDIUM"
+        }
+      ]
+    }
+  ]
+}
+
+CRITICAL CONSTRAINTS:
+1. Break the roadmap into a minimum of 4 and a maximum of 8 milestones (phases).
+2. Each milestone MUST have exactly 3 to 6 specific, actionable tasks. DO NOT BE LAZY. You MUST generate the FULL array of tasks for EVERY SINGLE milestone from the first to the very last.
+3. ABSOLUTELY NO PLACEHOLDERS. Do not use phrases like "etc", "add more tasks here", or stop early. Provide the complete and exhaustive roadmap.
+4. Make sure the total amount of work is realistic for the timeline and daily hours specified in the user request.
+5. Ensure the learning curve is appropriate for the requested difficulty level. Begin with foundational concepts if beginner, or jump into advanced paradigms if advanced.
+6. Use appropriate task priorities: LOW, MEDIUM, HIGH, or CRITICAL based on the necessity of the skill.
+7. Order milestones sequentially with `orderIndex` starting exactly from 0.
+8. Output ONLY valid JSON. Do not include markdown formatting like ```json or any explanatory text outside of the JSON object.
